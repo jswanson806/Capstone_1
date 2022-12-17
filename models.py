@@ -5,18 +5,7 @@ from datetime import datetime
 bcrypt = Bcrypt()
 db = SQLAlchemy()
 
-class Users(db.Model):
-    """Users model."""
 
-    __tablename__ = 'users'
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    first_name = db.Column(db.Text, nullable=False)
-    last_name = db.Column(db.Text, nullable=False)
-    mobile = db.Column(db.Text(10), nullable=True)
-    email = db.Column(db.Email, unique=True, nullable=False)
-    username = db.Column(db.Text(20), unique=True, nullable=False)
-    password = db.Column(db.Text, nullable=False)
 
 class Character(db.Model):
     """Characters model."""
@@ -27,7 +16,9 @@ class Character(db.Model):
     name = db.Column(db.Text, nullable=False)
     alter_ego = db.Column(db.Text, nullable=True)
     powers = db.Column(db.Text, nullable=True)
-    appears_in = db.Column(db.Text, nullable=False)
+
+    appearances = db.relationship('Character_Appearance', backref="characters", cascade='all, delete-orphan')
+
 
 class Comic(db.Model):
     """Comics model."""
@@ -51,10 +42,12 @@ class Review(db.Model):
     __tablename__ = "reviews"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    created = db.Column(db.DateTime, default=datetime.utcnow)
     title = db.Column(db.Text, nullable=False)
     stars = db.Column(db.Integer, nullable=False)
     content = db.Column(db.Text(500), nullable=False)
+
+    assignments = db.relationship("Comic_Reviews", backref='reviews', cascade='all, delete-orphan')
 
 
 class Order(db.Model):
@@ -80,14 +73,16 @@ class Order(db.Model):
     city = db.Column(db.Text, nullable=False)
     state = db.Column(db.Text, nullable=False)
     country = db.Column(db.Text, nullable=False)
-    created = db.Column(db.DateTime, default=datetime.datetime.utcnow, nullable=False)
-    updated = db.Column(db.DateTime, default=datetime.datetime.utcnow, nullable=True)
+    created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
     notes = db.Column(db.Text, nullable=True)
+
+    items = db.relationship("Order_Item", backref="orders", cascade='all, delete-orphan')
 
 class Transaction(db.Model):
     """Orders model."""
 
-    __tablename__ = "orders"
+    __tablename__ = "transactions"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, nullable=False)
@@ -95,6 +90,185 @@ class Transaction(db.Model):
     code = db.Column(db.Text, unique=True, nullable=False)
     type = db.Column(db.Text, nullable=False)
     payment_status = db.Column(db.Text, nullable=False, default="processing")
-    created = db.Column(db.DateTime, default=datetime.datetime.utcnow, nullable=False)
-    updated = db.Column(db.DateTime, default=datetime.datetime.utcnow, nullable=True)
+    created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
     notes = db.Column(db.Text, nullable=True)
+
+# *************************************Through Tables************************************
+
+class Character_List(db.Model):
+    """Mapping characters to users."""
+
+    __tablename__ = "character_lists"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    user_id = db.Column(db.Integer, 
+                        db.ForeignKey('users.id', 
+                        ondelete="cascade"), 
+                        primary_key=True
+                        )
+
+    character_id = db.Column(db.Integer, 
+                             db.ForeignKey('characters.id', 
+                             ondelete="cascade"),
+                             primary_key=True
+                             )
+
+class Reading_List(db.Model):
+    """Mapping comic issues to users."""
+
+    __tablename__ = "reading_lists"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    user_id = db.Column(db.Integer,
+                        db.ForeignKey('users.id',
+                        ondelete="cascade"),
+                        primary_key=True
+                        )
+    comic_id = db.Column(db.Integer,
+                        db.ForeignKey('comics.id',
+                        ondelete="cascade"),
+                        primary_key=True
+                        )
+    read = db.Column(db.Boolean, default=False)
+
+class Comic_Review(db.Model):
+    """Mapping reviews to comic issues."""
+
+    __tablename__ = "comic_reviews"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    user_id = db.Column(db.Integer,
+                        db.ForeignKey('users.id',
+                        ondelete="cascade"),
+                        primary_key=True
+                        )
+    review_id = db.Column(db.Integer,
+                        db.ForeignKey('reviews.id',
+                        ondelete="cascade"),
+                        primary_key=True
+                        )
+    comic_id = db.Column(db.Integer,
+                        db.ForeignKey('comics.id',
+                        ondelete="cascade"),
+                        primary_key=True
+                        )
+
+class Order_Item(db.Model):
+    """Mapping comic issues to orders."""
+
+    __tablename__ = "order_items"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    comic_id = db.Column(db.Integer,
+                        db.ForeignKey('comics.id',
+                        ondelete="cascade"),
+                        primary_key=True
+                        )
+    order_id = db.Column(db.Integer,
+                        db.ForeignKey('orders.id',
+                        ondelete="cascade"),
+                        primary_key=True
+                        )
+    quantity = db.Column(db.Integer, nullable=False)
+    created = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
+    updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
+    notes = db.Column(db.Text(280), nullable=True)
+
+class Character_Appearance(db.Model):
+    """Mapping characters to comic issues."""
+
+    __tablename__ = "character_appearances"
+
+    character_id = db.Column(db.Integer,
+                        db.ForeignKey('characters.id',
+                        ondelete="cascade"),
+                        primary_key=True
+                        )
+    comic_id = db.Column(db.Integer,
+                        db.ForeignKey('comics.id',
+                        ondelete="cascade"),
+                        primary_key=True
+                        )
+
+# *****************************************User Model**********************************************
+
+class User(db.Model):
+    """Users model."""
+
+    __tablename__ = 'users'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    first_name = db.Column(db.Text, nullable=False)
+    last_name = db.Column(db.Text, nullable=False)
+    mobile = db.Column(db.Text(10), nullable=True)
+    email = db.Column(db.Text, unique=True, nullable=False)
+    username = db.Column(db.Text(20), unique=True, nullable=False)
+    password = db.Column(db.Text, nullable=False)
+
+    characters = db.relationship("User", 
+                                secondary="character_lists", 
+                                primaryjoin=(Character_List.user_id == id), 
+                                secondaryjoin=(Character_List.character_id == id)
+                                )
+    reading = db.relationship("User", 
+                             secondary="reading_lists", 
+                             primaryjoin=(Reading_List.user_id == id),
+                             secondaryjoin=(Reading_List.comic_id == id)
+                             )
+    reviews = db.relationship("User", 
+                              secondary="comic_reviews", 
+                              primaryjoin=(Comic_Review.user_id == id),
+                              secondaryjoin=(Comic_Review.review_id == id)
+                              )
+
+    # format for easy identification in terminal
+    def __repr__(self):
+        return f"<User #{self.id}: {self.username}, {self.first_name}, {self.last_name}, {self.email}>"
+
+    @classmethod
+    def signup(cls, first_name, last_name, username, email, password):
+        """Sign up user.
+        
+        Hashes password and adds user to database.
+        """
+
+        hashed_pwd = bcrypt.generate_password_hash(password).decode("UTF-8")
+
+        user = User(first_name=first_name,
+                    last_name=last_name,
+                    username=username,
+                    email=email,
+                    password=hashed_pwd
+                    )
+        db.session.add(user)
+        return user
+
+    @classmethod
+    def authenticate(cls, username, password):
+        """Find user with username and password.
+        
+        Returns the user object whose password hash matches this password.
+        
+        Returns False if matching user is not found or if password is incorrect
+        """
+
+        user = cls.query.filter(username=username).first()
+
+        if user:
+            is_auth = bcrypt.check_password_hash(user.password, password)
+            if is_auth:
+                return user
+        
+        return False
+
+# ********************************************Connect Database******************************************
+def connect_db(app):
+    """Connect this databse to Flask app"""
+
+    db.app = app
+    db.init_app(app)

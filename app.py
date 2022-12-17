@@ -3,8 +3,8 @@ import os
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
-
-
+from models import db, connect_db, User, Character, Comic, Review, Order, Transaction
+import etrade
 
 import pdb
 
@@ -23,4 +23,8 @@ app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "it's a secret")
 toolbar = DebugToolbarExtension(app)
 
-# connect_db(app)
+connect_db(app)
+
+@app.route('/')
+def homepage():
+    return render_template('/etrade/index.html')
