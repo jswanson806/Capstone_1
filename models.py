@@ -45,9 +45,9 @@ class Review(db.Model):
     created = db.Column(db.DateTime, default=datetime.utcnow)
     title = db.Column(db.Text, nullable=False)
     stars = db.Column(db.Integer, nullable=False)
-    content = db.Column(db.Text(500), nullable=False)
+    content = db.Column(db.Text, nullable=False)
 
-    assignments = db.relationship("Comic_Reviews", backref='reviews', cascade='all, delete-orphan')
+    assignments = db.relationship("Comic_Review", backref='reviews', cascade='all, delete-orphan')
 
 
 class Order(db.Model):
@@ -177,7 +177,7 @@ class Order_Item(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     created = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
     updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
-    notes = db.Column(db.Text(280), nullable=True)
+    notes = db.Column(db.Text, nullable=True)
 
 class Character_Appearance(db.Model):
     """Mapping characters to comic issues."""
@@ -205,9 +205,9 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     first_name = db.Column(db.Text, nullable=False)
     last_name = db.Column(db.Text, nullable=False)
-    mobile = db.Column(db.Text(10), nullable=True)
+    mobile = db.Column(db.Text, nullable=True)
     email = db.Column(db.Text, unique=True, nullable=False)
-    username = db.Column(db.Text(20), unique=True, nullable=False)
+    username = db.Column(db.Text, unique=True, nullable=False)
     password = db.Column(db.Text, nullable=False)
 
     characters = db.relationship("User", 

@@ -1,4 +1,6 @@
+
 import os
+
 
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
@@ -9,6 +11,10 @@ from forms import UserSignUpForm, EditUserForm, LoginForm, UserSignInForm
 import pdb
 
 CURR_USER_KEY = "curr_user"
+os.environ['API_USER'] = 'darkphoenix141'
+os.environ['API_KEY'] = '6097d6aeb080923e8927570f0ff9ac6f3292fe0a'
+
+COMIC_API_BASE_URL = 'https://comicvine.gamespot.com/api'
 
 app = Flask(__name__)
 
@@ -16,7 +22,6 @@ app = Flask(__name__)
 # if not set there, use development local db.
 app.config['SQLALCHEMY_DATABASE_URI'] = (
     os.environ.get('DATABASE_URL', 'postgresql:///comicbook_store'))
-
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = False
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
@@ -25,7 +30,29 @@ toolbar = DebugToolbarExtension(app)
 
 connect_db(app)
 
-#******************************************Homepage | Sign-in | Sign-up***************************************
+#***********************Homepage | Sign-in | Sign-up**********************
+
+@app.before_request
+def add_user_to_g():
+    """If we are logged in, add current user to Flask global."""
+
+    if CURR_USER_KEY in session:
+        g.user = User.query.get(session[CURR_USER_KEY])
+
+    else:
+        g.user = None
+
+def login(user):
+    """Login user."""
+
+    session[CURR_USER_KEY] = user.id
+
+def logout():
+    """Logout user."""
+
+    if CURR_USER_KEY in session:
+        del session[CURR_USER_KEY]
+
 
 @app.route('/')
 def homepage():
@@ -40,7 +67,28 @@ def sign_up_page():
     If valid, create new user -> add user to database -> redirect to homepage.
     """
     form = UserSignUpForm()
-    return render_template('sign-up.html', form=form)
+
+    if form.validate_on_submit():
+        try:
+            user = User.signup(
+                username=form.username.data,
+                password=form.password.data,
+                first_name=form.first_name.data,
+                last_name=form.last_name.data,
+                email=form.email.data
+            )
+            db.session.commit()
+        # if user creation fails, flash message and serve the form again
+        except IntegrityError:
+            flash("Username is taken", 'danger')
+            return render_template('sign-up.html', form=form)
+
+        login(user)
+
+        return redirect('/')
+    # if validations fails, serve the form again
+    else:
+        return render_template('sign-up.html', form=form)
 
 
 @app.route('/signin', methods=["GET", "POST"])
@@ -54,7 +102,7 @@ def sign_in_page():
     return render_template('sign-in.html', form=form)
 
 
-#******************************************User Routes***************************************
+#*************************User Routes*************************
 
 @app.route('/users/<int:user_id>/account')
 def show_user_profile(user_id):
