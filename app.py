@@ -4,7 +4,6 @@ from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from models import db, connect_db, User, Character, Comic, Review, Order, Transaction
-import etrade
 
 import pdb
 
@@ -27,4 +26,4 @@ connect_db(app)
 
 @app.route('/')
 def homepage():
-    return render_template('/etrade/index.html')
+    return render_template('shop.html')
