@@ -1,18 +1,16 @@
 
 import os
-
+import requests
 
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from models import db, connect_db, User, Character, Comic, Review, Order, Transaction
 from forms import UserSignUpForm, EditUserForm, LoginForm, UserSignInForm
-
+from secret import API_SECRET_KEY
 import pdb
 
 CURR_USER_KEY = "curr_user"
-os.environ['API_USER'] = 'darkphoenix141'
-os.environ['API_KEY'] = '6097d6aeb080923e8927570f0ff9ac6f3292fe0a'
 
 COMIC_API_BASE_URL = 'https://comicvine.gamespot.com/api'
 
@@ -99,6 +97,20 @@ def sign_in_page():
     If valid, log-in user -> update user in session -> redirect to homepage.
     """
     form = UserSignInForm()
+
+    if form.validate_on_submit():
+        user = User.authenticate(form.username.data,
+                                 form.password.data)
+        # if user authentication success -> login user -> flash welcome msg
+        if user:
+            login(user)
+            flash(f"Welcome back, {user.username}!", "success")
+            return redirect('/')
+
+        # if user auth fails -> flash invalid msg
+        flash("Invalid information.", "danger")
+
+    # if form validation fails, rerender the form
     return render_template('sign-in.html', form=form)
 
 
@@ -107,8 +119,13 @@ def sign_in_page():
 @app.route('/users/<int:user_id>/account')
 def show_user_profile(user_id):
     """Show the user account information."""
+    if g in session:
 
-    return render_template('my-account.html')
+        user = User.query.get_or_404(user_id)
+        return render_template('my-account.html', user=user)
+        
+    flash('Login to view this page.', "danger")
+    return redirect('/signin')
 
 
 @app.route('/users/<int:user_id>/edit', methods=["GET", "POST"])
