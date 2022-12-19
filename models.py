@@ -14,8 +14,10 @@ class Character(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.Text, nullable=False)
-    alter_ego = db.Column(db.Text, nullable=True)
-    powers = db.Column(db.Text, nullable=True)
+    deck = db.Column(db.Text, nullable=True)
+    first_appearance = db.Column(db.Text, nullable=True)
+    image = db.Column(db.Text, default="/static/missing_cover_art.png")
+    api_detail_url = db.Column(db.Text, nullable=True)
 
     appearances = db.relationship('Character_Appearance', backref="characters", cascade='all, delete-orphan')
 
