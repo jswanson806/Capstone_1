@@ -1,20 +1,23 @@
 
 import os
-import requests
-
-from flask import Flask, render_template, request, flash, redirect, session, g
+import requests, json, pdb
+from flask import Flask, jsonify, make_response, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from models import db, connect_db, User, Character, Comic, Review, Order, Transaction
 from forms import UserSignUpForm, EditUserForm, LoginForm, UserSignInForm
 from secret import API_SECRET_KEY
-import pdb
 
 CURR_USER_KEY = "curr_user"
 
-COMIC_API_BASE_URL = 'https://comicvine.gamespot.com/api'
+
 
 app = Flask(__name__)
+
+# API URLs
+COMIC_BASE = 'https://comicvine.gamespot.com/api'
+COMIC_CHARACTER = 'https://comicvine.gamespot.com/api/characters'
+COMIC_ISSUES = 'https://comicvine.gamespot.com/api/issues'
 
 # Get DB_URI from environ variable (useful for production/testing) or,
 # if not set there, use development local db.
@@ -28,7 +31,46 @@ toolbar = DebugToolbarExtension(app)
 
 connect_db(app)
 
-#***********************Homepage | Sign-in | Sign-up**********************
+#*****************************API Calls******************************
+character_list = []
+
+def search_characters(search_term):
+    """Returns a list of characters matching the search term"""
+    key = API_SECRET_KEY
+    url= COMIC_CHARACTER
+
+    params = {"api_key":key, 
+                   "field_list":"name,aliases,deck,first_appeared_in_issue,count_of_issue_appearances,image,api_detail_url",
+                   "filter":f"name:{search_term}",
+                   "format":"json"
+                   }
+
+    headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+    "Content-Type": "application/json"
+    }
+
+    res = requests.get(url, headers=headers, params=params)
+
+    data = res.json()
+    results_count = data['number_of_page_results']
+    
+
+    for i in range (0,results_count):
+        name = data['results'][i]['name']
+        aliases = data['results'][i]['aliases']
+        deck = data['results'][i]['deck']
+        first_appearance = data['results'][i]['first_appeared_in_issue']
+        total_appearances = data['results'][i]['count_of_issue_appearances']
+        images = data['results'][i]['image']
+    
+        character = {'name': name, 'aliases': aliases, 'deck': deck, 'first_appearance': first_appearance, 'total_appearances': total_appearances, 'images':images}
+        character_list.append(character)
+
+    return character_list
+    
+
+#***************Homepage | Sign-in | Sign-up | Logout****************
 
 @app.before_request
 def add_user_to_g():
@@ -123,7 +165,7 @@ def show_user_profile(user_id):
 
         user = User.query.get_or_404(user_id)
         return render_template('my-account.html', user=user)
-        
+
     flash('Login to view this page.', "danger")
     return redirect('/signin')
 
@@ -180,15 +222,18 @@ def remove_character(user_id):
 
     return redirect(f'/users/{user_id}/characters')
 
-#******************************************Character Routes***************************************
+#***************************************Character Routes**********************************
 
-@app.route('/characters/<int:character_id>')
-def show_character_details(character_id):
-    """Show details for specific character."""
+@app.route('/characters')
+def find_characters():
+    """Find characters matching keyword search."""
+    # get matching results from api - limit 100
+    search_characters('Kraven')
 
-    return render_template('single-product.html')
+    
+    return render_template('characters-list.html', character_list=character_list)
 
-#******************************************Cart Routes***************************************
+#***************************************Cart Routes***************************************
 
 @app.route('/cart')
 def show_cart_details():
@@ -245,4 +290,5 @@ def add_review(comic_id):
 def remove_review(review_id):
     """Remove review from comic issue."""
 
-    return redirect(f'/comic/{comic_id}')
+    return redirect(f'/comic/{review_id}')
+
