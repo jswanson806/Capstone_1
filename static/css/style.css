@@ -6502,6 +6502,8 @@ Header Styles
 
 .logo-light {
   display: none !important;
+  height: 2rem;
+  width: auto;
 }
 
 .axil-mainmenu .header-navbar {
@@ -16920,6 +16922,8 @@ Dark Style
 }
 .active-dark-mode .logo-dark {
   display: none !important;
+  height: 2rem;
+  width: auto;
 }
 .active-dark-mode .logo-light {
   display: block !important;

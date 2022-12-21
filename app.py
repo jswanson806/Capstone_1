@@ -6,7 +6,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from models import db, connect_db, User, Character, Comic, Review, Order, Transaction
 from forms import UserSignUpForm, EditUserForm, LoginForm, UserSignInForm
-from secret import API_SECRET_KEY
+from secret import COMIC_API_KEY
 
 CURR_USER_KEY = "curr_user"
 
@@ -31,13 +31,17 @@ toolbar = DebugToolbarExtension(app)
 
 connect_db(app)
 
-#*****************************API Calls******************************
-character_list = []
 
+
+#*****************************API Calls******************************
 def search_characters(search_term):
     """Returns a list of characters matching the search term"""
-    key = API_SECRET_KEY
-    url= COMIC_CHARACTER
+
+    # holds the character list returned from user search
+    character_list = []
+
+    key = COMIC_API_KEY
+    url = COMIC_CHARACTER
 
     params = {"api_key":key, 
                    "field_list":"name,aliases,deck,first_appeared_in_issue,count_of_issue_appearances,image,api_detail_url",
@@ -228,7 +232,7 @@ def remove_character(user_id):
 def find_characters():
     """Find characters matching keyword search."""
     # get matching results from api - limit 100
-    search_characters('Kraven')
+    character_list = search_characters('Kraven')
 
     
     return render_template('characters-list.html', character_list=character_list)
