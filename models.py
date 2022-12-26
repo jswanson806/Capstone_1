@@ -34,10 +34,8 @@ class Comic(db.Model):
     >>> id = db.Column(db.Integer, primary_key=True)
     >>> name = db.Column(db.Text, nullable=False)
     >>> issue_number = db.Column(db.Text, nullable=False)
-    >>> publisher = db.Column(db.Text, nullable=True)
     >>> cover_date = db.Column(db.DateTime, nullable=True)
-    >>> author = db.Column(db.Text, nullable=True)
-    >>> illustrator = db.Column(db.Text, nullable=False)
+    >>> deck = db.Column(db.Text, default='Unavailable')
     >>> price = db.Column(db.Text, default="4.99")
     >>> cover_img = db.Column(db.Text, default="/static/missing_cover_art.png")
     """
@@ -46,11 +44,9 @@ class Comic(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
-    issue_number = db.Column(db.Text, nullable=False)
-    publisher = db.Column(db.Text, nullable=True)
-    cover_date = db.Column(db.DateTime, nullable=True)
-    author = db.Column(db.Text, nullable=True)
-    illustrator = db.Column(db.Text, nullable=False)
+    issue_number = db.Column(db.Text, default='N/A')
+    cover_date = db.Column(db.Date, default='Unavailable')
+    deck = db.Column(db.Text, default='Unavailable')
     price = db.Column(db.Text, default="4.99")
     cover_img = db.Column(db.Text, default="/static/missing_cover_art.png")
 

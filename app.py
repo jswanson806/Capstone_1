@@ -36,24 +36,46 @@ connect_db(app)
 
 #*****************************Methods******************************
 def get_comic_issue(issue_id):
-    key = COMIC_API_KEY
-    url = COMIC_ISSUE + f'{issue_id}'
 
-    params = {"api_key":key, 
-              "field_list":"id,name,person_credits,deck,cover_date,image,first_appearance_characters",
-              "format":"json"
-            }
+    # check for comic issue in SQL db
+    exists = db.session.query(db.exists().where(Comic.id == issue_id)).scalar()
+    
+    if exists:
+        # query SQL db comic
+        comic = Comic.query.get(issue_id)  
+        return comic
+    
+    else:
+        key = COMIC_API_KEY
+        url = COMIC_ISSUE + f'{issue_id}'
 
-    headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
-    "Content-Type": "application/json"
-    }
+        params = {"api_key":key, 
+                  "field_list":"id,name,deck,cover_date,issue_number,image,first_appearance_characters",
+                  "format":"json"
+                 }
 
-    res = requests.get(url, headers=headers, params=params)
+        headers = {
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+                  "Content-Type": "application/json"
+                  }
 
-    data = res.json()
-    print('########################################',data['results']['name'])
-    return None
+        res = requests.get(url, headers=headers, params=params)
+
+        data = res.json()
+
+        new_comic = Comic(id = data['results']['id'],
+                        name = data['results']['name'],
+                        issue_number = data['results']['issue_number'],
+                        cover_date = data['results']['cover_date'],
+                        cover_img = data['results']['image']['original_url'],
+                        deck = data['results']['deck'],
+                        )
+    
+        db.session.add(new_comic)
+        db.session.commit()
+
+        return new_comic
+        
 
 def get_character_appearances(character_id):
     key = COMIC_API_KEY
@@ -76,13 +98,14 @@ def get_character_appearances(character_id):
     
     issue_credits = data['results']['issue_credits']
 
+    # filter out issue titles that are not real titles
     forbidden_names = ['TPB','HC','HC/TPB', 'TPB/HC', 'HC\TPB', 'TPB\HC', 'Chapter','Volume', '', 'SC']
 
+    # additional filters for issue titles that are not full title names during loop
     for i in issue_credits:
         if i['name'] not in forbidden_names and i['name'] != None and not i['name'].startswith(('Volume', 'Chapter', 'Book', 'Part', 'Vol.')):
             id = i['id']
             name = i['name']
-
             issue = {'id': id, 'name': name}
             search_results.append(issue)
     
@@ -90,55 +113,66 @@ def get_character_appearances(character_id):
 
 def search_characters(search_term):
     """
-    Returns json data about characters who match the search term
-    
-    Adds characters to the SQL database if not already present ->
-    Queries SQL database for characters matching search ->
-    Appends all results to list and returns the list of SQLAlchemy Character objects
+    Returns characters with similar names to the search_term.
+
+    Limits calls to the API:
+    If characters do not exist in the SQL db already ->
+    call the API and generate new character instances from the returned data ->
+    Add the characters to the SQL db and return the list of character SQLAlchemy objects
     """
 
-    key = COMIC_API_KEY
-    url = COMIC_CHARACTERS
-    search_results = []
+    # check for characters similar to search_term in SQL db
+    exists = db.session.query(db.exists().where(Character.name.like(f'%{search_term}%'))).scalar()
 
-    params = {"api_key":key, 
-                   "field_list":"id,name,real_name,aliases,deck,first_appeared_in_issue,count_of_issue_appearances,image,api_detail_url,publisher",
-                   "filter":f"name:{search_term}",
-                   "format":"json"
-                   }
+    # if characters are already present in SQL db, query the characters and return them
+    if exists:
+        characters = db.session.query(Character).filter(Character.name.like(f'%{search_term}%')).from_self()
+        return characters
 
-    headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
-    "Content-Type": "application/json"
-    }
+    # if no matching characters are found in SQL db, query the API
+    # -> iterate over response data and add characters to the database
+    # -> return the list of characters from the API
 
-    res = requests.get(url, headers=headers, params=params)
+    else:
 
-    data = res.json()
+        key = COMIC_API_KEY
+        url = COMIC_CHARACTERS      
+        search_results = []
 
-    # count of returned characters from api search
-    results_count = data['number_of_page_results']
+        params = {"api_key":key, 
+                       "field_list":"id,name,real_name,aliases,deck,first_appeared_in_issue,count_of_issue_appearances,image,api_detail_url,publisher",
+                       "filter":f"name:{search_term}",
+                       "format":"json"
+                       }
 
-    # iterate over data and extract character information
-    for i in range (0,results_count):
-        id = data['results'][i]['id']
-        name = data['results'][i]['name']
-        real_name = data['results'][i]['real_name']
-        deck = data['results'][i]['deck']
-        first_appear_issue_id = data['results'][i]['first_appeared_in_issue']['id']
-        first_appear_issue_num = data['results'][i]['first_appeared_in_issue']['issue_number']
-        first_appear_issue_name = data['results'][i]['first_appeared_in_issue']['name']
-        total_appearances = data['results'][i]['count_of_issue_appearances']
-        icon_image_url = data['results'][i]['image']['icon_url']
-        original_url = data['results'][i]['image']['original_url']
-        publisher_id = data['results'][i]['publisher']['id']
-        publisher_name = data['results'][i]['publisher']['name']
+        headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+        "Content-Type": "application/json"
+        }
 
-        # check for character in SQL db
-        exists = db.session.query(db.exists().where(Character.id == id)).scalar()
+        res = requests.get(url, headers=headers, params=params)
 
-        # create new character in SQL db from extracted information
-        if exists != True:
+        data = res.json()
+
+        # count of returned characters from api search
+        results_count = data['number_of_page_results']
+
+        # iterate over data and extract character information
+        for i in range (0,results_count):
+            id = data['results'][i]['id']
+            name = data['results'][i]['name']
+            real_name = data['results'][i]['real_name']
+            deck = data['results'][i]['deck']
+            first_appear_issue_id = data['results'][i]['first_appeared_in_issue']['id']
+            first_appear_issue_num = data['results'][i]['first_appeared_in_issue']['issue_number']
+            first_appear_issue_name = data['results'][i]['first_appeared_in_issue']['name']
+            total_appearances = data['results'][i]['count_of_issue_appearances']
+            icon_image_url = data['results'][i]['image']['icon_url']
+            original_url = data['results'][i]['image']['original_url']
+            publisher_id = data['results'][i]['publisher']['id']
+            publisher_name = data['results'][i]['publisher']['name']
+
+            # create new character instances
             new_character = Character(id=id,
                                 name=name, 
                                 real_name=real_name, 
@@ -152,16 +186,14 @@ def search_characters(search_term):
                                 publisher_id=publisher_id,
                                 publisher_name=publisher_name
                                 )
-                                
+            # add and commit new character instance to the SQL db                    
             db.session.add(new_character)
             db.session.commit()
-        # Find characters in SQL db matching the character id
-        character = Character.query.get(id)
-        # Append SQLAlchemy character objects to search_results list
-        search_results.append(character)
+            # append character SQLAlchemy object to the search_results list
+            search_results.append(new_character)
 
-    return search_results
-    
+        return search_results
+
 
 #***************Homepage | Sign-in | Sign-up | Logout****************
 
@@ -374,8 +406,8 @@ def show_checkout_form():
 @app.route('/comic/<int:comic_id>')
 def show_comic_details(comic_id):
     """Remove item from cart in session."""
-    comic_issue = get_comic_issue(comic_id)
-    return render_template('comic-details.html', comic_issue=comic_issue)
+    comic = get_comic_issue(comic_id)
+    return render_template('comic-details.html', comic=comic)
 
 #******************************************Review Routes***************************************
 
