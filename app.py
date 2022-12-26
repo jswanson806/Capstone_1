@@ -50,7 +50,7 @@ def get_comic_issue(issue_id):
         url = COMIC_ISSUE + f'{issue_id}'
 
         params = {"api_key":key, 
-                  "field_list":"id,name,deck,cover_date,issue_number,image,first_appearance_characters",
+                  "field_list":"id,name,deck,cover_date,issue_number,image,first_appearance_characters,character_credits",
                   "format":"json"
                  }
 
@@ -73,7 +73,7 @@ def get_comic_issue(issue_id):
     
         db.session.add(new_comic)
         db.session.commit()
-
+        
         return new_comic
         
 
