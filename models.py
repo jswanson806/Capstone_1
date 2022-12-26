@@ -12,30 +12,46 @@ class Character(db.Model):
 
     __tablename__ = 'characters'
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.Text, nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text, nullable=True)
+    real_name = db.Column(db.Text, nullable=True)
     deck = db.Column(db.Text, nullable=True)
-    first_appearance = db.Column(db.Text, nullable=True)
-    icon_image = db.Column(db.Text, default="/static/missing_cover_art.png")
-    screen_large_image = db.Column(db.Text, default="/static/missing_cover_art.png")
-    api_detail_url = db.Column(db.Text, nullable=True)
+    first_appear_issue_id = db.Column(db.Integer, nullable=True)
+    first_appear_issue_num = db.Column(db.Integer, nullable=True)
+    first_appear_issue_name = db.Column(db.Text, nullable=True)
+    total_appearances = db.Column(db.Integer, nullable=True)
+    icon_image_url = db.Column(db.Text, default="/static/images/logo/fox-icon-thumb-sm.png")
+    original_url = db.Column(db.Text, default="/static/missing_cover_art.png")
+    publisher_id = db.Column(db.Integer, nullable=True)
+    publisher_name = db.Column(db.Text, nullable=True)
 
     appearances = db.relationship('Character_Appearance', backref="characters", cascade='all, delete-orphan')
 
 
 class Comic(db.Model):
-    """Comics model."""
+    """Comics model.
+    
+    >>> id = db.Column(db.Integer, primary_key=True)
+    >>> name = db.Column(db.Text, nullable=False)
+    >>> issue_number = db.Column(db.Text, nullable=False)
+    >>> publisher = db.Column(db.Text, nullable=True)
+    >>> cover_date = db.Column(db.DateTime, nullable=True)
+    >>> author = db.Column(db.Text, nullable=True)
+    >>> illustrator = db.Column(db.Text, nullable=False)
+    >>> price = db.Column(db.Text, default="4.99")
+    >>> cover_img = db.Column(db.Text, default="/static/missing_cover_art.png")
+    """
 
     __tablename__ = 'comics'
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    title = db.Column(db.Text, nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text, nullable=False)
     issue_number = db.Column(db.Text, nullable=False)
-    publisher = db.Column(db.Text, nullable=False)
-    published_date = db.Column(db.DateTime, nullable=False)
-    author = db.Column(db.Text, nullable=False)
+    publisher = db.Column(db.Text, nullable=True)
+    cover_date = db.Column(db.DateTime, nullable=True)
+    author = db.Column(db.Text, nullable=True)
     illustrator = db.Column(db.Text, nullable=False)
-    price = db.Column(db.Text, nullable=False)
+    price = db.Column(db.Text, default="4.99")
     cover_img = db.Column(db.Text, default="/static/missing_cover_art.png")
 
 
