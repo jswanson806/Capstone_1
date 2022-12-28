@@ -1,32 +1,26 @@
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import relationship
 from datetime import datetime
 
 bcrypt = Bcrypt()
 db = SQLAlchemy()
 
 
+class Character_Appearance(db.Model):
+    """Mapping characters to comic issues."""
 
-class Character(db.Model):
-    """Characters model."""
+    __tablename__ = "character_appearances"
 
-    __tablename__ = 'characters'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text, nullable=True)
-    real_name = db.Column(db.Text, nullable=True)
-    deck = db.Column(db.Text, nullable=True)
-    first_appear_issue_id = db.Column(db.Integer, nullable=True)
-    first_appear_issue_num = db.Column(db.Integer, nullable=True)
-    first_appear_issue_name = db.Column(db.Text, nullable=True)
-    total_appearances = db.Column(db.Integer, nullable=True)
-    icon_image_url = db.Column(db.Text, default="/static/images/logo/fox-icon-thumb-sm.png")
-    original_url = db.Column(db.Text, default="/static/missing_cover_art.png")
-    publisher_id = db.Column(db.Integer, nullable=True)
-    publisher_name = db.Column(db.Text, nullable=True)
-
-    appearances = db.relationship('Character_Appearance', backref="characters", cascade='all, delete-orphan')
-
+    character_id = db.Column(db.Integer,
+                        db.ForeignKey('characters.id'),
+                        primary_key=True
+                        )
+    comic_id = db.Column(db.Integer,
+                        db.ForeignKey('comics.id'),
+                        primary_key=True
+                        )
 
 class Comic(db.Model):
     """Comics model.
@@ -49,6 +43,30 @@ class Comic(db.Model):
     deck = db.Column(db.Text, default='Unavailable')
     price = db.Column(db.Text, default="4.99")
     cover_img = db.Column(db.Text, default="/static/missing_cover_art.png")
+
+    assignments = db.relationship('Character_Appearance', backref='comics', cascade="all, delete-orphan")
+
+class Character(db.Model):
+    """Characters model."""
+
+    __tablename__ = 'characters'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text, nullable=True)
+    real_name = db.Column(db.Text, nullable=True)
+    deck = db.Column(db.Text, nullable=True)
+    first_appear_issue_id = db.Column(db.Integer, nullable=True)
+    first_appear_issue_num = db.Column(db.Integer, nullable=True)
+    first_appear_issue_name = db.Column(db.Text, nullable=True)
+    total_appearances = db.Column(db.Integer, nullable=True)
+    icon_image_url = db.Column(db.Text, default="/static/images/logo/fox-icon-thumb-sm.png")
+    original_url = db.Column(db.Text, default="/static/missing_cover_art.png")
+    publisher_id = db.Column(db.Integer, nullable=True)
+    publisher_name = db.Column(db.Text, nullable=True)
+
+    assignments = db.relationship('Character_Appearance', backref='characters')
+    appearances = db.relationship('Comic', secondary='character_appearances', backref='characters')
+
 
 
 class Review(db.Model):
@@ -194,21 +212,7 @@ class Order_Item(db.Model):
     updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
     notes = db.Column(db.Text, nullable=True)
 
-class Character_Appearance(db.Model):
-    """Mapping characters to comic issues."""
 
-    __tablename__ = "character_appearances"
-
-    character_id = db.Column(db.Integer,
-                        db.ForeignKey('characters.id',
-                        ondelete="cascade"),
-                        primary_key=True
-                        )
-    comic_id = db.Column(db.Integer,
-                        db.ForeignKey('comics.id',
-                        ondelete="cascade"),
-                        primary_key=True
-                        )
 
 # *****************************************User Model**********************************************
 

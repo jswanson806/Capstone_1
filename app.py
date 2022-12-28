@@ -35,6 +35,11 @@ connect_db(app)
 
 
 #*****************************Methods******************************
+def get_comics(search_term):
+
+    return None
+
+
 def get_comic_issue(issue_id):
 
     # check for comic issue in SQL db
@@ -68,19 +73,30 @@ def get_comic_issue(issue_id):
                         issue_number = data['results']['issue_number'],
                         cover_date = data['results']['cover_date'],
                         cover_img = data['results']['image']['original_url'],
-                        deck = data['results']['deck'],
+                        deck = data['results']['deck']
                         )
-    
+
+
+        for i in data['results']['character_credits']:
+            # check for character in SQL db
+            exists = db.session.query(db.exists().where(Character.id == i.get('id'))).scalar()
+            print('######################', exists)
+            if exists:
+                character = Character.query.get(i.get('id'))
+                print('######################', character)
+                character.appearances.append(new_comic)
+
         db.session.add(new_comic)
         db.session.commit()
-        
+
         return new_comic
-        
+
 
 def get_character_appearances(character_id):
     key = COMIC_API_KEY
     url = COMIC_CHARACTER + f'{character_id}'
-    search_results = []
+    appearances = []
+
 
     params = {"api_key":key, 
               "field_list":"issue_credits",
@@ -107,9 +123,9 @@ def get_character_appearances(character_id):
             id = i['id']
             name = i['name']
             issue = {'id': id, 'name': name}
-            search_results.append(issue)
+            appearances.append(issue)
     
-    return search_results
+    return appearances
 
 def search_characters(search_term):
     """
@@ -405,8 +421,9 @@ def show_checkout_form():
 
 @app.route('/comic/<int:comic_id>')
 def show_comic_details(comic_id):
-    """Remove item from cart in session."""
+    """Show comic product page."""
     comic = get_comic_issue(comic_id)
+
     return render_template('comic-details.html', comic=comic)
 
 #******************************************Review Routes***************************************
