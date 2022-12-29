@@ -45,6 +45,8 @@ class Comic(db.Model):
     cover_img = db.Column(db.Text, default="/static/missing_cover_art.png")
 
     assignments = db.relationship('Character_Appearance', backref='comics', cascade="all, delete-orphan")
+    reading_assignments = db.relationship('Reading_List', backref='comics', cascade="all, delete-orphan")
+    
 
 class Character(db.Model):
     """Characters model."""
@@ -64,8 +66,9 @@ class Character(db.Model):
     publisher_id = db.Column(db.Integer, nullable=True)
     publisher_name = db.Column(db.Text, nullable=True)
 
-    assignments = db.relationship('Character_Appearance', backref='characters')
+    appear_assignments = db.relationship('Character_Appearance', backref='characters')
     appearances = db.relationship('Comic', secondary='character_appearances', backref='characters')
+    
 
 
 
@@ -80,7 +83,7 @@ class Review(db.Model):
     stars = db.Column(db.Integer, nullable=False)
     content = db.Column(db.Text, nullable=False)
 
-    assignments = db.relationship("Comic_Review", backref='reviews', cascade='all, delete-orphan')
+    assignments = db.relationship("Comic_Review", backref='reviews')
 
 
 class Order(db.Model):
@@ -137,14 +140,12 @@ class Character_List(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
     user_id = db.Column(db.Integer, 
-                        db.ForeignKey('users.id', 
-                        ondelete="cascade"), 
+                        db.ForeignKey('users.id'), 
                         primary_key=True
                         )
 
     character_id = db.Column(db.Integer, 
-                             db.ForeignKey('characters.id', 
-                             ondelete="cascade"),
+                             db.ForeignKey('characters.id'),
                              primary_key=True
                              )
 
@@ -156,14 +157,10 @@ class Reading_List(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
     user_id = db.Column(db.Integer,
-                        db.ForeignKey('users.id',
-                        ondelete="cascade"),
-                        primary_key=True
+                        db.ForeignKey('users.id')
                         )
     comic_id = db.Column(db.Integer,
-                        db.ForeignKey('comics.id',
-                        ondelete="cascade"),
-                        primary_key=True
+                        db.ForeignKey('comics.id')
                         )
     read = db.Column(db.Boolean, default=False)
 
@@ -175,18 +172,15 @@ class Comic_Review(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
     user_id = db.Column(db.Integer,
-                        db.ForeignKey('users.id',
-                        ondelete="cascade"),
+                        db.ForeignKey('users.id'),
                         primary_key=True
                         )
     review_id = db.Column(db.Integer,
-                        db.ForeignKey('reviews.id',
-                        ondelete="cascade"),
+                        db.ForeignKey('reviews.id'),
                         primary_key=True
                         )
     comic_id = db.Column(db.Integer,
-                        db.ForeignKey('comics.id',
-                        ondelete="cascade"),
+                        db.ForeignKey('comics.id'),
                         primary_key=True
                         )
 
@@ -198,13 +192,11 @@ class Order_Item(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
     comic_id = db.Column(db.Integer,
-                        db.ForeignKey('comics.id',
-                        ondelete="cascade"),
+                        db.ForeignKey('comics.id'),
                         primary_key=True
                         )
     order_id = db.Column(db.Integer,
-                        db.ForeignKey('orders.id',
-                        ondelete="cascade"),
+                        db.ForeignKey('orders.id'),
                         primary_key=True
                         )
     quantity = db.Column(db.Integer, nullable=False)
@@ -229,20 +221,20 @@ class User(db.Model):
     username = db.Column(db.Text, unique=True, nullable=False)
     password = db.Column(db.Text, nullable=False)
 
-    characters = db.relationship("User", 
+    characters = db.relationship("Character", 
                                 secondary="character_lists", 
-                                primaryjoin=(Character_List.user_id == id), 
-                                secondaryjoin=(Character_List.character_id == id)
+                                backref="users"
                                 )
-    reading = db.relationship("User", 
+    reading = db.relationship("Comic", 
                              secondary="reading_lists", 
-                             primaryjoin=(Reading_List.user_id == id),
-                             secondaryjoin=(Reading_List.comic_id == id)
+                             backref="users"
                              )
-    reviews = db.relationship("User", 
+
+    assigned_reading = db.relationship("Reading_List", backref="users")
+    
+    reviews = db.relationship("Review", 
                               secondary="comic_reviews", 
-                              primaryjoin=(Comic_Review.user_id == id),
-                              secondaryjoin=(Comic_Review.review_id == id)
+                              backref="users"
                               )
 
     # format for easy identification in terminal
