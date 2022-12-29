@@ -35,10 +35,6 @@ connect_db(app)
 
 
 #*****************************Methods******************************
-def get_comics(search_term):
-
-    return None
-
 
 def get_comic_issue(issue_id):
 
@@ -80,10 +76,9 @@ def get_comic_issue(issue_id):
         for i in data['results']['character_credits']:
             # check for character in SQL db
             exists = db.session.query(db.exists().where(Character.id == i.get('id'))).scalar()
-            print('######################', exists)
+            
             if exists:
                 character = Character.query.get(i.get('id'))
-                print('######################', character)
                 character.appearances.append(new_comic)
 
         db.session.add(new_comic)
@@ -322,16 +317,33 @@ def edit_user_profile(user_id):
     return redirect(f'/users/{user_id}/account')
 
 
-@app.route('/users/<int:user_id>/wishlist')
+@app.route('/users/<int:user_id>/reading')
 def show_user_wishlist(user_id):
-    """Show all user wishlisted items."""
+    """Show user reading list."""
 
-    return render_template('wishlist.html')
+    if not g.user:
+        flash("Access unauthorized", "danger")
+        return redirect('/signin')
+
+    reading_list = g.user.reading
+    print('####################################', reading_list)
+
+    return render_template('reading-list.html', reading_list=reading_list)
 
 
-@app.route('/users/<int:user_id>/add_wishlist', methods=["POST"])
-def add_wishlist_item(user_id):
+@app.route('/users/reading_list/<int:issue_id>', methods=["POST"])
+def add_reading_list_item(issue_id):
     """Add item to user wishlist."""
+
+    if not g.user:
+        flash("Login to wishlist characters/comics", "danger")
+        return redirect('/')
+
+    comic = Comic.query.get_or_404(issue_id)
+
+    user = User.query.get(g.user.id)
+    user.reading.append(comic)
+    db.session.commit()
 
     return redirect('/')
 
@@ -369,7 +381,8 @@ def remove_character(user_id):
 def find_characters():
     """Find characters matching keyword search."""
     # get matching results from api - limit 100
-    search_res = search_characters('Kraven')
+  
+    search_res = search_characters('Spider-Man')
 
     
     return render_template('characters-search.html', characters=search_res)
@@ -378,7 +391,7 @@ def find_characters():
 def show_character_details(character_id):
     """Show single character details page."""
     character = Character.query.get_or_404(character_id)
-
+    
     appearances = get_character_appearances(character_id)
     
 
