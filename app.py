@@ -321,59 +321,95 @@ def edit_user_profile(user_id):
 def show_user_wishlist(user_id):
     """Show user reading list."""
 
-    if not g.user:
+    if g.user.id != user_id:
         flash("Access unauthorized", "danger")
         return redirect('/signin')
 
     reading_list = g.user.reading
-    print('####################################', reading_list)
 
     return render_template('reading-list.html', reading_list=reading_list)
 
 
-@app.route('/users/reading_list/<int:issue_id>', methods=["POST"])
-def add_reading_list_item(issue_id):
+@app.route('/users/reading_list/<int:comic_id>', methods=["POST"])
+def add_reading_list_item(comic_id):
     """Add item to user wishlist."""
 
     if not g.user:
-        flash("Login to wishlist characters/comics", "danger")
+        flash("Login to save comics", "danger")
         return redirect('/')
 
-    comic = Comic.query.get_or_404(issue_id)
+    comic = Comic.query.get_or_404(comic_id)
 
     user = User.query.get(g.user.id)
     user.reading.append(comic)
     db.session.commit()
 
-    return redirect('/')
+    return redirect(f'/comic/{comic.id}')
 
 
-@app.route('/users/<int:user_id>/remove_wishlist', methods=["POST"])
-def remove_wishlist_item(user_id):
-    """Remove item from user wishlist."""
+@app.route('/users/<int:comic_id>/remove_comic', methods=["POST"])
+def remove_wishlist_item(comic_id):
+    """Remove comic from user reading list."""
 
-    return redirect('/')
+    if not g.user.id:
+        flash("Access Unauthorized.", "danger")
+        return redirect('/signin')
+    
+    comic = Comic.query.get_or_404(comic_id)
+    g.user.reading.remove(comic)
+
+    db.session.commit()
+
+    return redirect(f'/users/{g.user.id}/reading')
 
 
 @app.route('/users/<int:user_id>/characters')
 def show_saved_characters(user_id):
     """Show list of user's saved characters."""
 
-    return render_template('characters-list.html')
+    if g.user.id != user_id:
+        flash("Access unauthorized.", "danger")
+        return redirect('/signin')
+    
+    character_list = g.user.characters
+
+    
+    return render_template('characters-list.html', character_list=character_list)
 
 
-@app.route('/users/<int:user_id>/add_character', methods=["POST"])
-def add_character(user_id):
+@app.route('/users/characters/<int:character_id>', methods=["POST"])
+def add_character(character_id):
     """Add character to list of user's saved characters."""
 
-    return redirect(f'/users/{user_id}/characters')
+    if not g.user:
+        flash("Login to save characters.", "danger")
+        return redirect('/signin')
+    
+    character = Character.query.get_or_404(character_id)
+
+    user = User.query.get_or_404(g.user.id)
+
+    user.characters.append(character)
+
+    db.session.commit()
+
+    return redirect(f'/characters/{character_id}')
     
 
-@app.route('/users/<int:user_id>/remove_character', methods=["POST"])
-def remove_character(user_id):
+@app.route('/users/<int:character_id>/remove_character', methods=["POST"])
+def remove_character(character_id):
     """Remove character from list of user's saved characters."""
 
-    return redirect(f'/users/{user_id}/characters')
+    if not g.user.id:
+        flash("Access Unauthorized.", "danger")
+        return redirect('/signin')
+    
+    character = Character.query.get_or_404(character_id)
+    g.user.characters.remove(character)
+    db.session.commit()
+
+
+    return redirect(f'/users/{g.user.id}/characters')
 
 #***************************************Character Routes**********************************
 
@@ -382,18 +418,16 @@ def find_characters():
     """Find characters matching keyword search."""
     # get matching results from api - limit 100
   
-    search_res = search_characters('Spider-Man')
-
+    search_res = search_characters('Raven')
     
     return render_template('characters-search.html', characters=search_res)
 
-@app.route('/<int:character_id>')
+@app.route('/characters/<int:character_id>')
 def show_character_details(character_id):
     """Show single character details page."""
     character = Character.query.get_or_404(character_id)
     
     appearances = get_character_appearances(character_id)
-    
 
     return render_template('character-details.html', character=character, appearances=appearances)
 
