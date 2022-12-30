@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>eTrade || Single Product</title>
+    <title>Reading List</title>
     <meta name="robots" content="noindex, follow" />
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -29,7 +29,7 @@
 </head>
 
 
-<body class="sticky-header overflow-md-visible">
+<body class="sticky-header">
     <!--[if lte IE 9]>
     <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
 <![endif]-->
@@ -40,6 +40,28 @@
             <div class="container">
                 <div class="row align-items-center">
                     <div class="col-lg-6 col-sm-6 col-12">
+                        <!-- <div class="header-top-dropdown">
+                            <div class="dropdown">
+                                <button class="dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    English
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#">English</a></li>
+                                    <li><a class="dropdown-item" href="#">Arabic</a></li>
+                                    <li><a class="dropdown-item" href="#">Spanish</a></li>
+                                </ul>
+                            </div>
+                            <div class="dropdown">
+                                <button class="dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    USD
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#">USD</a></li>
+                                    <li><a class="dropdown-item" href="#">AUD</a></li>
+                                    <li><a class="dropdown-item" href="#">EUR</a></li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-lg-6 col-sm-6 col-12">
                         <div class="header-top-link">
@@ -48,7 +70,7 @@
                                 <li><a href="sign-up.html">Join Us</a></li>
                                 <li><a href="sign-in.html">Sign In</a></li>
                             </ul>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
             </div>
@@ -59,10 +81,10 @@
             <div class="container">
                 <div class="header-navbar">
                     <div class="header-brand">
-                        <a href="/" class="logo logo-dark">
-                            <img src="/static/images/logo/fox-icon-thumb-sm.png" alt="Site Logo">
+                        <a href="index.html" class="logo logo-dark">
+                            <img src="/static/images/logo/fox-icon-thumb-sm" alt="Site Logo">
                         </a>
-                        <a href="/" class="logo logo-light">
+                        <a href="index.html" class="logo logo-light">
                             <img src="/static/images/logo/fox-icon-thumb-sm.png" alt="Site Logo">
                         </a>
                     </div>
@@ -71,8 +93,8 @@
                         <nav class="mainmenu-nav">
                             <button class="mobile-close-btn mobile-nav-toggler"><i class="fas fa-times"></i></button>
                             <div class="mobile-nav-brand">
-                                <a href="/" class="logo">
-                                    <img src="/static/images/logo/logo.png" alt="Site Logo">
+                                <a href="index.html" class="logo">
+                                    <img src="/static/images/logo/fox-icon-thumb-sm.png" alt="Site Logo">
                                 </a>
                             </div>
                             <ul class="mainmenu">
@@ -219,100 +241,44 @@
     <!-- End Header -->
 
     <main class="main-wrapper">
-        <!-- Start Shop Area  -->
-        <div class="axil-single-product-area bg-color-white">
-            <div class="single-product-thumb axil-section-gap pb--20 pb_sm--0 bg-vista-white">
-                <div class="container">
-                    <div class="row row--25">
-                        <div class="col-lg-6 mb--40">
-                            <div class="h-100">
-                                <div class="position-sticky sticky-top">
-                                    <div class="row row--10">
-                                        <div class="col-6 mb--20">
-                                            <div class="single-product-thumbnail axil-product thumbnail-grid">
-                                                <div class="thumbnail">
-                                                    <img class="img-fluid" src="{{ comic.cover_img }}" alt="{{ comic.name }} Image">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- End .col -->
-                                        
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-6 mb--40">
-                            <div class="h-100">
-                                <div class="position-sticky sticky-top">
-                                    <div class="single-product-content">
-                                        <div class="inner">
-                                            <h2 class="product-title">{{ comic.name }}</h2>
-                                            <small>Issue #{{ comic.issue_number }}</small>
-                                            <span class="price-amount">${{ comic.price }}</span>
-                                            <div class="product-rating">
-                                                <div class="star-rating">
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="far fa-star"></i>
-                                                </div>
-                                                <div class="review-link">
-                                                    <a href="#">(<span>2</span> customer reviews)</a>
-                                                </div>
-                                            </div>
-                                            <ul class="product-meta">
-                                                <li><i class="fal fa-check"></i>In stock</li>
-                                                <li><i class="fal fa-check"></i>Free delivery available</li>
-                                                <li><i class="fal fa-check"></i>Board back included</li>
-                                            </ul>
-  
 
-                                            <!-- Start Product Action Wrapper  -->
-                                            <div class="product-action-wrapper d-flex-center">
+        <!-- Start Wishlist Area  -->
+        <div class="axil-wishlist-area axil-section-gap">
+            <div class="container">
+                <div class="product-table-heading">
+                    <h4 class="title">My Reading List</h4>
+                </div>
+                <div class="table-responsive">
+                    <table class="table axil-product-table axil-wishlist-table">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="product-remove"></th>
+                                <th scope="col" class="product-thumbnail"></th>
+                                <th scope="col" class="product-title">Name</th>
+                                <th scope="col" class="product-title">Real Name</th>
+                                <th scope="col" class="product-price">Appearances</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for character in character_list %}
+                                <tr>
+                                    <form action="/users/{{ character.id }}/remove_character" method="POST">
+                                        <td class="product-remove"><button class="remove-wishlist"><i class="fal fa-times"></i></button></td>
+                                    </form>
+                                    <td class="product-thumbnail"><a href="/characters/{{ character.id }}"><img src="{{ character.icon_image_url }}" alt="Digital Product"></a></td>
+                                    <td class="product-title"><a href="/characters/{{ character.id }}">{{ character.name }}</a></td>
+                                    <td class="product-title">{{ character.real_name }}</td>
+                                    <td class="product-price" data-title="Appearances">{{ character.total_appearances }}</td>
+                                </tr>
+                            {% endfor %}
 
-                                                <!-- Start Product Action  -->
-                                                <ul class="product-action d-flex-center mb--0">
-                                                    <li class="add-to-cart"><a href="cart.html" class="axil-btn btn-bg-primary">Add to Cart</a></li>
-                                                    <form action="/users/reading_list/{{ comic.id }}", method="POST">
-                                                        <li class="wishlist"><button class="axil-btn wishlist-btn"><i class="far fa-heart"></i></button></li>
-                                                    </form>
-                                                </ul>
-                                                <!-- End Product Action  -->
-
-                                            </div>
-                                            <!-- End Product Action Wrapper  -->
-
-                                            <div class="product-desc-wrapper pt--80 pt_sm--60">
-                                                <h4 class="primary-color mb--40 desc-heading">Issue Details</h4>
-                                                <div class="single-desc mb--30">
-                                                    <h5 class="title">Description:</h5>
-                                                    {% if comic.deck == " " %}
-                                                        <p class="description">Description Unavailable</p>
-                                                    {% else %}
-                                                        <p class="description">{{ comic.deck }}</p>
-                                                    {% endif %}
-                                                </div>
-                                                <div class="single-desc mb--30">
-                                                    <h5 class="title">Cover Date:</h5>
-                                                    <p>{{ comic.cover_date }}</p>
-                                                </div>
-                                            </div>
-                                            <!-- End .product-desc-wrapper -->
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <!-- End .single-product-thumb -->
-
         </div>
-        <!-- End Shop Area  -->
-
-
+        <!-- End Wishlist Area  -->
+    </main>
 
 
     <div class="service-area">
@@ -321,7 +287,7 @@
                 <div class="col">
                     <div class="service-box service-style-2">
                         <div class="icon">
-                            <img src="/static/images/icons/service1.png" alt="Service">
+                            <img src="./static/images/icons/service1.png" alt="Service">
                         </div>
                         <div class="content">
                             <h6 class="title">Fast &amp; Secure Delivery</h6>
@@ -332,7 +298,7 @@
                 <div class="col">
                     <div class="service-box service-style-2">
                         <div class="icon">
-                            <img src="/static/images/icons/service2.png" alt="Service">
+                            <img src="./static/images/icons/service2.png" alt="Service">
                         </div>
                         <div class="content">
                             <h6 class="title">Money Back Guarantee</h6>
@@ -343,7 +309,7 @@
                 <div class="col">
                     <div class="service-box service-style-2">
                         <div class="icon">
-                            <img src="/static/images/icons/service3.png" alt="Service">
+                            <img src="./static/images/icons/service3.png" alt="Service">
                         </div>
                         <div class="content">
                             <h6 class="title">24 Hour Return Policy</h6>
@@ -354,7 +320,7 @@
                 <div class="col">
                     <div class="service-box service-style-2">
                         <div class="icon">
-                            <img src="/static/images/icons/service4.png" alt="Service">
+                            <img src="./static/images/icons/service4.png" alt="Service">
                         </div>
                         <div class="content">
                             <h6 class="title">Pro Quality Support</h6>
@@ -654,7 +620,7 @@
                     <div class="axil-product-list">
                         <div class="thumbnail">
                             <a href="single-product.html">
-                                <img src="/static/images/product/electric/product-09.png" alt="Yantiti Leather Bags">
+                                <img src="./static/images/product/electric/product-09.png" alt="Yantiti Leather Bags">
                             </a>
                         </div>
                         <div class="product-content">
@@ -682,7 +648,7 @@
                     <div class="axil-product-list">
                         <div class="thumbnail">
                             <a href="single-product.html">
-                                <img src="/static/images/product/electric/product-09.png" alt="Yantiti Leather Bags">
+                                <img src="./static/images/product/electric/product-09.png" alt="Yantiti Leather Bags">
                             </a>
                         </div>
                         <div class="product-content">
@@ -725,7 +691,7 @@
                 <ul class="cart-item-list">
                     <li class="cart-item">
                         <div class="item-img">
-                            <a href="single-product.html"><img src="static/images/product/electric/product-01.png" alt="Commodo Blown Lamp"></a>
+                            <a href="single-product.html"><img src="/static/images/product/electric/product-01.png" alt="Commodo Blown Lamp"></a>
                             <button class="close-btn"><i class="fas fa-times"></i></button>
                         </div>
                         <div class="item-content">
@@ -748,7 +714,7 @@
                     </li>
                     <li class="cart-item">
                         <div class="item-img">
-                            <a href="single-product-2.html"><img src="static/images/product/electric/product-02.png" alt="Commodo Blown Lamp"></a>
+                            <a href="single-product-2.html"><img src="/static/images/product/electric/product-02.png" alt="Commodo Blown Lamp"></a>
                             <button class="close-btn"><i class="fas fa-times"></i></button>
                         </div>
                         <div class="item-content">
@@ -771,7 +737,7 @@
                     </li>
                     <li class="cart-item">
                         <div class="item-img">
-                            <a href="single-product-3.html"><img src="static/images/product/electric/product-03.png" alt="Commodo Blown Lamp"></a>
+                            <a href="single-product-3.html"><img src="/static/images/product/electric/product-03.png" alt="Commodo Blown Lamp"></a>
                             <button class="close-btn"><i class="fas fa-times"></i></button>
                         </div>
                         <div class="item-content">

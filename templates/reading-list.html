@@ -253,8 +253,8 @@
                         <thead>
                             <tr>
                                 <th scope="col" class="product-remove"></th>
-                                <th scope="col" class="product-thumbnail">Product</th>
-                                <th scope="col" class="product-title"></th>
+                                <th scope="col" class="product-thumbnail">Issue</th>
+                                <th scope="col" class="product-title">Title</th>
                                 <th scope="col" class="product-price">Unit Price</th>
                                 <th scope="col" class="product-stock-status">Stock Status</th>
                                 <th scope="col" class="product-add-cart"></th>
@@ -263,9 +263,11 @@
                         <tbody>
                             {% for comic in reading_list %}
                                 <tr>
-                                    <td class="product-remove"><a href="#" class="remove-wishlist"><i class="fal fa-times"></i></a></td>
-                                    <td class="product-thumbnail"><a href="single-product.html"><img src="{{ comic.cover_img }}" alt="Digital Product"></a></td>
-                                    <td class="product-title"><a href="single-product.html">{{ comic.name }}</a></td>
+                                    <form action="/users/{{ comic.id }}/remove_comic", method="POST">
+                                        <td class="product-remove"><button class="remove-wishlist"><i class="fal fa-times"></i></button></td>
+                                    </form>
+                                    <td class="product-thumbnail"><a href="/comic/{{ comic.id }}"><img src="{{ comic.cover_img }}" alt="Digital Product"></a></td>
+                                    <td class="product-title"><a href="/comic/{{ comic.id }}">{{ comic.name }}</a></td>
                                     <td class="product-price" data-title="Price"><span class="currency-symbol">$</span>{{ comic.price }}</td>
                                     <td class="product-stock-status" data-title="Status">In Stock</td>
                                     <td class="product-add-cart"><a href="cart.html" class="axil-btn btn-outline">Add to Cart</a></td>
