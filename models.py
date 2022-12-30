@@ -44,7 +44,7 @@ class Comic(db.Model):
     price = db.Column(db.Text, default="4.99")
     cover_img = db.Column(db.Text, default="/static/missing_cover_art.png")
 
-    assignments = db.relationship('Character_Appearance', backref='comics', cascade="all, delete-orphan")
+    appear_assignments = db.relationship('Character_Appearance', backref='comics', cascade="all, delete-orphan")
     reading_assignments = db.relationship('Reading_List', backref='comics', cascade="all, delete-orphan")
     
 
@@ -68,6 +68,7 @@ class Character(db.Model):
 
     appear_assignments = db.relationship('Character_Appearance', backref='characters')
     appearances = db.relationship('Comic', secondary='character_appearances', backref='characters')
+    character_list_assignments = db.relationship('Character_List', backref='characters', cascade="all, delete-orphan")
     
 
 
@@ -231,6 +232,8 @@ class User(db.Model):
                              )
 
     assigned_reading = db.relationship("Reading_List", backref="users")
+
+    assigned_characters = db.relationship("Character_List", backref="users")
     
     reviews = db.relationship("Review", 
                               secondary="comic_reviews", 
