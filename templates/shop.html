@@ -45,8 +45,13 @@
                         <div class="header-top-link">
                             <ul class="quick-link">
                                 <li><a href="#">Help</a></li>
-                                <li><a href="/signup">Join Us</a></li>
-                                <li><a href="/signin">Sign In</a></li>
+                                {% if not g.user %}
+                                    <li><a href="/signup">Join Us</a></li>
+                                    <li><a href="/signin">Sign In</a></li>
+                                {% else %}
+                                    <li><a href="/users/{{ g.user.id }}/account">Account</a></li>
+                                    <li><a href="/logout">Logout</a></li>
+                                {% endif %}
                             </ul>
                         </div>
                     </div>
@@ -217,7 +222,11 @@
         </div>
     </header>
     <!-- End Header -->
-
+    <!-- flashed messages -->
+    {% for category, message in get_flashed_messages(with_categories=True) %}
+    <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+    <!-- end flashed messages -->
     <main class="main-wrapper">
         {% block content %}
         <!-- Start Breadcrumb Area  -->
