@@ -9,22 +9,22 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Favicon -->
-    <link rel="shortcut icon" type="image/x-icon" href="static/images/favicon.png">
+    <link rel="shortcut icon" type="image/x-icon" href="/static/images/favicon.png">
 
     <!-- CSS
     ============================================ -->
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="static/css/vendor/bootstrap.min.css">
-    <link rel="stylesheet" href="static/css/vendor/font-awesome.css">
-    <link rel="stylesheet" href="static/css/vendor/flaticon/flaticon.css">
-    <link rel="stylesheet" href="static/css/vendor/slick.css">
-    <link rel="stylesheet" href="static/css/vendor/slick-theme.css">
-    <link rel="stylesheet" href="static/css/vendor/jquery-ui.min.css">
-    <link rel="stylesheet" href="static/css/vendor/sal.css">
-    <link rel="stylesheet" href="static/css/vendor/magnific-popup.css">
-    <link rel="stylesheet" href="static/css/vendor/base.css">
-    <link rel="stylesheet" href="static/css/style.min.css">
+    <link rel="stylesheet" href="/static/css/vendor/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/vendor/font-awesome.css">
+    <link rel="stylesheet" href="/static/css/vendor/flaticon/flaticon.css">
+    <link rel="stylesheet" href="/static/css/vendor/slick.css">
+    <link rel="stylesheet" href="/static/css/vendor/slick-theme.css">
+    <link rel="stylesheet" href="/static/css/vendor/jquery-ui.min.css">
+    <link rel="stylesheet" href="/static/css/vendor/sal.css">
+    <link rel="stylesheet" href="/static/css/vendor/magnific-popup.css">
+    <link rel="stylesheet" href="/static/css/vendor/base.css">
+    <link rel="stylesheet" href="/static/css/style.min.css">
 
 </head>
 
@@ -45,8 +45,8 @@
                         <div class="header-top-link">
                             <ul class="quick-link">
                                 <li><a href="#">Help</a></li>
-                                <li><a href="sign-up.html">Join Us</a></li>
-                                <li><a href="sign-in.html">Sign In</a></li>
+                                <li><a href="/signup">Join Us</a></li>
+                                <li><a href="/signin">Sign In</a></li>
                             </ul>
                         </div>
                     </div>
@@ -59,11 +59,11 @@
             <div class="container">
                 <div class="header-navbar">
                     <div class="header-brand">
-                        <a href="index.html" class="logo logo-dark">
-                            <img src="static/images/logo/fox-icon-thumb-sm.png" alt="Site Logo">
+                        <a href="/" class="logo logo-dark">
+                            <img src="/static/images/logo/fox-icon-thumb-sm.png" alt="Site Logo">
                         </a>
-                        <a href="index.html" class="logo logo-light">
-                            <img src="static/images/logo/fox-icon-thumb-sm.png" alt="Site Logo">
+                        <a href="/" class="logo logo-light">
+                            <img src="/static/images/logo/fox-icon-thumb-sm.png" alt="Site Logo">
                         </a>
                     </div>
                     <div class="header-main-nav">
@@ -71,8 +71,8 @@
                         <nav class="mainmenu-nav">
                             <button class="mobile-close-btn mobile-nav-toggler"><i class="fas fa-times"></i></button>
                             <div class="mobile-nav-brand">
-                                <a href="index.html" class="logo">
-                                    <img src="static/images/logo/fox-icon-thumb-sm.png" alt="Site Logo">
+                                <a href="/" class="logo">
+                                    <img src="/static/images/logo/fox-icon-thumb-sm.png" alt="Site Logo">
                                 </a>
                             </div>
                             <ul class="mainmenu">
@@ -180,8 +180,8 @@
                                             <a href="#">Language</a>
                                         </li>
                                     </ul>
-                                    <a href="sign-in.html" class="axil-btn btn-bg-primary">Login</a>
-                                    <div class="reg-footer text-center">No account yet? <a href="sign-up.html" class="btn-link">REGISTER HERE.</a></div>
+                                    <a href="/signin" class="axil-btn btn-bg-primary">Login</a>
+                                    <div class="reg-footer text-center">No account yet? <a href="/signup" class="btn-link">REGISTER HERE.</a></div>
                                 </div>
                             </li>
                             <li class="axil-mobile-toggle">
@@ -219,6 +219,7 @@
     <!-- End Header -->
 
     <main class="main-wrapper">
+        {% block content %}
         <!-- Start Breadcrumb Area  -->
         <div class="axil-breadcrumb-area">
             <div class="container">
@@ -236,7 +237,7 @@
                     <div class="col-lg-6 col-md-4">
                         <div class="inner">
                             <div class="bradcrumb-thumb">
-                                <img src="static/images/product/product-45.png" alt="Image">
+                                <img src="/static/images/product/product-45.png" alt="Image">
                             </div>
                         </div>
                     </div>
@@ -307,7 +308,7 @@
                         <div class="axil-product product-style-one has-color-pick mt--40">
                             <div class="thumbnail">
                                 <a href="single-product.html">
-                                    <img src="static/images/product/electric/product-01.png" alt="Product Images">
+                                    <img src="/static/images/product/electric/product-01.png" alt="Product Images">
                                 </a>
                                 <div class="label-block label-right">
                                     <div class="product-badget">20% OFF</div>
@@ -346,7 +347,7 @@
                         <div class="axil-product product-style-one has-color-pick mt--40">
                             <div class="thumbnail">
                                 <a href="single-product.html">
-                                    <img src="static/images/product/electric/product-02.png" alt="Product Images">
+                                    <img src="/static/images/product/electric/product-02.png" alt="Product Images">
                                 </a>
                                 <div class="product-hover-action">
                                     <ul class="cart-action">
@@ -382,7 +383,7 @@
                         <div class="axil-product product-style-one has-color-pick mt--40">
                             <div class="thumbnail">
                                 <a href="single-product.html">
-                                    <img src="static/images/product/electric/product-03.png" alt="Product Images">
+                                    <img src="/static/images/product/electric/product-03.png" alt="Product Images">
                                 </a>
                                 <div class="label-block label-right">
                                     <div class="product-badget">30% OFF</div>
@@ -421,7 +422,7 @@
                         <div class="axil-product product-style-one has-color-pick mt--40">
                             <div class="thumbnail">
                                 <a href="single-product.html">
-                                    <img src="static/images/product/electric/product-04.png" alt="Product Images">
+                                    <img src="/static/images/product/electric/product-04.png" alt="Product Images">
                                 </a>
                                 <div class="product-hover-action">
                                     <ul class="cart-action">
@@ -457,7 +458,7 @@
                         <div class="axil-product product-style-one has-color-pick mt--40">
                             <div class="thumbnail">
                                 <a href="single-product.html">
-                                    <img src="static/images/product/electric/product-05.png" alt="Product Images">
+                                    <img src="/static/images/product/electric/product-05.png" alt="Product Images">
                                 </a>
                                 <div class="label-block label-right">
                                     <div class="product-badget">15% OFF</div>
@@ -496,7 +497,7 @@
                         <div class="axil-product product-style-one has-color-pick mt--40">
                             <div class="thumbnail">
                                 <a href="single-product.html">
-                                    <img src="static/images/product/electric/product-06.png" alt="Product Images">
+                                    <img src="/static/images/product/electric/product-06.png" alt="Product Images">
                                 </a>
                                 <div class="product-hover-action">
                                     <ul class="cart-action">
@@ -532,7 +533,7 @@
                         <div class="axil-product product-style-one has-color-pick mt--40">
                             <div class="thumbnail">
                                 <a href="single-product.html">
-                                    <img src="static/images/product/electric/product-07.png" alt="Product Images">
+                                    <img src="/static/images/product/electric/product-07.png" alt="Product Images">
                                 </a>
                                 <div class="label-block label-right">
                                     <div class="product-badget">5% OFF</div>
@@ -571,7 +572,7 @@
                         <div class="axil-product product-style-one has-color-pick mt--40">
                             <div class="thumbnail">
                                 <a href="single-product.html">
-                                    <img src="static/images/product/electric/product-08.png" alt="Product Images">
+                                    <img src="/static/images/product/electric/product-08.png" alt="Product Images">
                                 </a>
                                 <div class="product-hover-action">
                                     <ul class="cart-action">
@@ -607,7 +608,7 @@
                         <div class="axil-product product-style-one has-color-pick mt--40">
                             <div class="thumbnail">
                                 <a href="single-product.html">
-                                    <img src="static/images/product/fashion/product-9.png" alt="Product Images">
+                                    <img src="/static/images/product/fashion/product-9.png" alt="Product Images">
                                 </a>
                                 <div class="label-block label-right">
                                     <div class="product-badget">20% OFF</div>
@@ -646,7 +647,7 @@
                         <div class="axil-product product-style-one has-color-pick mt--40">
                             <div class="thumbnail">
                                 <a href="single-product.html">
-                                    <img src="static/images/product/fashion/product-10.png" alt="Product Images">
+                                    <img src="/static/images/product/fashion/product-10.png" alt="Product Images">
                                 </a>
                                 <div class="product-hover-action">
                                     <ul class="cart-action">
@@ -682,7 +683,7 @@
                         <div class="axil-product product-style-one has-color-pick mt--40">
                             <div class="thumbnail">
                                 <a href="single-product.html">
-                                    <img src="static/images/product/fashion/product-11.png" alt="Product Images">
+                                    <img src="/static/images/product/fashion/product-11.png" alt="Product Images">
                                 </a>
                                 <div class="label-block label-right">
                                     <div class="product-badget">30% OFF</div>
@@ -721,7 +722,7 @@
                         <div class="axil-product product-style-one has-color-pick mt--40">
                             <div class="thumbnail">
                                 <a href="single-product.html">
-                                    <img src="static/images/product/fashion/product-12.png" alt="Product Images">
+                                    <img src="/static/images/product/fashion/product-12.png" alt="Product Images">
                                 </a>
                                 <div class="product-hover-action">
                                     <ul class="cart-action">
@@ -761,35 +762,15 @@
             <!-- End .container -->
         </div>
         <!-- End Shop Area  -->
-        <!-- Start Axil Newsletter Area  -->
-        <div class="axil-newsletter-area axil-section-gap pt--0">
-            <div class="container">
-                <div class="etrade-newsletter-wrapper bg_image bg_image--5">
-                    <div class="newsletter-content">
-                        <span class="title-highlighter highlighter-primary2"><i class="fas fa-envelope-open"></i>Newsletter</span>
-                        <h2 class="title mb--40 mb_sm--30">Get weekly update</h2>
-                        <div class="input-group newsletter-form">
-                            <div class="position-relative newsletter-inner mb--15">
-                                <input placeholder="example@gmail.com" type="text">
-                            </div>
-                            <button type="submit" class="axil-btn mb--15">Subscribe</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- End .container -->
-        </div>
-        <!-- End Axil Newsletter Area  -->
+    {% endblock %}
     </main>
-
-
     <div class="service-area">
         <div class="container">
             <div class="row row-cols-xl-4 row-cols-sm-2 row-cols-1 row--20">
                 <div class="col">
                     <div class="service-box service-style-2">
                         <div class="icon">
-                            <img src="./static/images/icons/service1.png" alt="Service">
+                            <img src="/./static/images/icons/service1.png" alt="Service">
                         </div>
                         <div class="content">
                             <h6 class="title">Fast &amp; Secure Delivery</h6>
@@ -800,7 +781,7 @@
                 <div class="col">
                     <div class="service-box service-style-2">
                         <div class="icon">
-                            <img src="./static/images/icons/service2.png" alt="Service">
+                            <img src="/./static/images/icons/service2.png" alt="Service">
                         </div>
                         <div class="content">
                             <h6 class="title">Money Back Guarantee</h6>
@@ -811,7 +792,7 @@
                 <div class="col">
                     <div class="service-box service-style-2">
                         <div class="icon">
-                            <img src="./static/images/icons/service3.png" alt="Service">
+                            <img src="/./static/images/icons/service3.png" alt="Service">
                         </div>
                         <div class="content">
                             <h6 class="title">24 Hour Return Policy</h6>
@@ -822,7 +803,7 @@
                 <div class="col">
                     <div class="service-box service-style-2">
                         <div class="icon">
-                            <img src="./static/images/icons/service4.png" alt="Service">
+                            <img src="/./static/images/icons/service4.png" alt="Service">
                         </div>
                         <div class="content">
                             <h6 class="title">Pro Quality Support</h6>
@@ -902,14 +883,14 @@
                                 <span>Save $3 With App & New User only</span>
                                 <div class="download-btn-group">
                                     <div class="qr-code">
-                                        <img src="static/images/others/qr.png" alt="Axilthemes">
+                                        <img src="/static/images/others/qr.png" alt="Axilthemes">
                                     </div>
                                     <div class="app-link">
                                         <a href="#">
-                                            <img src="static/images/others/app-store.png" alt="App Store">
+                                            <img src="/static/images/others/app-store.png" alt="App Store">
                                         </a>
                                         <a href="#">
-                                            <img src="static/images/others/play-store.png" alt="Play Store">
+                                            <img src="/static/images/others/play-store.png" alt="Play Store">
                                         </a>
                                     </div>
                                 </div>
@@ -945,9 +926,9 @@
                         <div class="copyright-right d-flex flex-wrap justify-content-xl-end justify-content-center align-items-center">
                             <span class="card-text">Accept For</span>
                             <ul class="payment-icons-bottom quick-link">
-                                <li><img src="static/images/icons/cart/cart-1.png" alt="paypal cart"></li>
-                                <li><img src="static/images/icons/cart/cart-2.png" alt="paypal cart"></li>
-                                <li><img src="static/images/icons/cart/cart-5.png" alt="paypal cart"></li>
+                                <li><img src="/static/images/icons/cart/cart-1.png" alt="paypal cart"></li>
+                                <li><img src="/static/images/icons/cart/cart-2.png" alt="paypal cart"></li>
+                                <li><img src="/static/images/icons/cart/cart-5.png" alt="paypal cart"></li>
                             </ul>
                         </div>
                     </div>
@@ -973,34 +954,34 @@
                                     <div class="col-lg-10 order-lg-2">
                                         <div class="single-product-thumbnail product-large-thumbnail axil-product thumbnail-badge zoom-gallery">
                                             <div class="thumbnail">
-                                                <img src="static/images/product/product-big-01.png" alt="Product Images">
+                                                <img src="/static/images/product/product-big-01.png" alt="Product Images">
                                                 <div class="label-block label-right">
                                                     <div class="product-badget">20% OFF</div>
                                                 </div>
                                                 <div class="product-quick-view position-view">
-                                                    <a href="static/images/product/product-big-01.png" class="popup-zoom">
+                                                    <a href="/static/images/product/product-big-01.png" class="popup-zoom">
                                                         <i class="far fa-search-plus"></i>
                                                     </a>
                                                 </div>
                                             </div>
                                             <div class="thumbnail">
-                                                <img src="static/images/product/product-big-02.png" alt="Product Images">
+                                                <img src="/static/images/product/product-big-02.png" alt="Product Images">
                                                 <div class="label-block label-right">
                                                     <div class="product-badget">20% OFF</div>
                                                 </div>
                                                 <div class="product-quick-view position-view">
-                                                    <a href="static/images/product/product-big-02.png" class="popup-zoom">
+                                                    <a href="/static/images/product/product-big-02.png" class="popup-zoom">
                                                         <i class="far fa-search-plus"></i>
                                                     </a>
                                                 </div>
                                             </div>
                                             <div class="thumbnail">
-                                                <img src="static/images/product/product-big-03.png" alt="Product Images">
+                                                <img src="/static/images/product/product-big-03.png" alt="Product Images">
                                                 <div class="label-block label-right">
                                                     <div class="product-badget">20% OFF</div>
                                                 </div>
                                                 <div class="product-quick-view position-view">
-                                                    <a href="static/images/product/product-big-03.png" class="popup-zoom">
+                                                    <a href="/static/images/product/product-big-03.png" class="popup-zoom">
                                                         <i class="far fa-search-plus"></i>
                                                     </a>
                                                 </div>
@@ -1010,13 +991,13 @@
                                     <div class="col-lg-2 order-lg-1">
                                         <div class="product-small-thumb small-thumb-wrapper">
                                             <div class="small-thumb-img">
-                                                <img src="static/images/product/product-thumb/thumb-08.png" alt="thumb image">
+                                                <img src="/static/images/product/product-thumb/thumb-08.png" alt="thumb image">
                                             </div>
                                             <div class="small-thumb-img">
-                                                <img src="static/images/product/product-thumb/thumb-07.png" alt="thumb image">
+                                                <img src="/static/images/product/product-thumb/thumb-07.png" alt="thumb image">
                                             </div>
                                             <div class="small-thumb-img">
-                                                <img src="static/images/product/product-thumb/thumb-09.png" alt="thumb image">
+                                                <img src="/static/images/product/product-thumb/thumb-09.png" alt="thumb image">
                                             </div>
                                         </div>
                                     </div>
@@ -1027,7 +1008,7 @@
                                     <div class="inner">
                                         <div class="product-rating">
                                             <div class="star-rating">
-                                                <img src="static/images/icons/rate.png" alt="Rate Images">
+                                                <img src="/static/images/icons/rate.png" alt="Rate Images">
                                             </div>
                                             <div class="review-link">
                                                 <a href="#">(<span>1</span> customer reviews)</a>
@@ -1122,7 +1103,7 @@
                     <div class="axil-product-list">
                         <div class="thumbnail">
                             <a href="single-product.html">
-                                <img src="./static/images/product/electric/product-09.png" alt="Yantiti Leather Bags">
+                                <img src="/./static/images/product/electric/product-09.png" alt="Yantiti Leather Bags">
                             </a>
                         </div>
                         <div class="product-content">
@@ -1150,7 +1131,7 @@
                     <div class="axil-product-list">
                         <div class="thumbnail">
                             <a href="single-product.html">
-                                <img src="./static/images/product/electric/product-09.png" alt="Yantiti Leather Bags">
+                                <img src="/./static/images/product/electric/product-09.png" alt="Yantiti Leather Bags">
                             </a>
                         </div>
                         <div class="product-content">
@@ -1193,7 +1174,7 @@
                 <ul class="cart-item-list">
                     <li class="cart-item">
                         <div class="item-img">
-                            <a href="single-product.html"><img src="static/images/product/electric/product-01.png" alt="Commodo Blown Lamp"></a>
+                            <a href="single-product.html"><img src="/static/images/product/electric/product-01.png" alt="Commodo Blown Lamp"></a>
                             <button class="close-btn"><i class="fas fa-times"></i></button>
                         </div>
                         <div class="item-content">
@@ -1216,7 +1197,7 @@
                     </li>
                     <li class="cart-item">
                         <div class="item-img">
-                            <a href="single-product-2.html"><img src="static/images/product/electric/product-02.png" alt="Commodo Blown Lamp"></a>
+                            <a href="single-product-2.html"><img src="/static/images/product/electric/product-02.png" alt="Commodo Blown Lamp"></a>
                             <button class="close-btn"><i class="fas fa-times"></i></button>
                         </div>
                         <div class="item-content">
@@ -1239,7 +1220,7 @@
                     </li>
                     <li class="cart-item">
                         <div class="item-img">
-                            <a href="single-product-3.html"><img src="static/images/product/electric/product-03.png" alt="Commodo Blown Lamp"></a>
+                            <a href="single-product-3.html"><img src="/static/images/product/electric/product-03.png" alt="Commodo Blown Lamp"></a>
                             <button class="close-btn"><i class="fas fa-times"></i></button>
                         </div>
                         <div class="item-content">
@@ -1278,25 +1259,25 @@
     <!-- JS
 ============================================ -->
     <!-- Modernizer JS -->
-    <script src="static/js/vendor/modernizr.min.js"></script>
+    <script src="/static/js/vendor/modernizr.min.js"></script>
     <!-- jQuery JS -->
-    <script src="static/js/vendor/jquery.js"></script>
+    <script src="/static/js/vendor/jquery.js"></script>
     <!-- Bootstrap JS -->
-    <script src="static/js/vendor/popper.min.js"></script>
-    <script src="static/js/vendor/bootstrap.min.js"></script>
-    <script src="static/js/vendor/slick.min.js"></script>
-    <script src="static/js/vendor/js.cookie.js"></script>
-    <script src="static/js/vendor/jquery-ui.min.js"></script>
-    <script src="static/js/vendor/jquery.countdown.min.js"></script>
-    <script src="static/js/vendor/sal.js"></script>
-    <script src="static/js/vendor/jquery.magnific-popup.min.js"></script>
-    <script src="static/js/vendor/imagesloaded.pkgd.min.js"></script>
-    <script src="static/js/vendor/isotope.pkgd.min.js"></script>
-    <script src="static/js/vendor/counterup.js"></script>
-    <script src="static/js/vendor/waypoints.min.js"></script>
+    <script src="/static/js/vendor/popper.min.js"></script>
+    <script src="/static/js/vendor/bootstrap.min.js"></script>
+    <script src="/static/js/vendor/slick.min.js"></script>
+    <script src="/static/js/vendor/js.cookie.js"></script>
+    <script src="/static/js/vendor/jquery-ui.min.js"></script>
+    <script src="/static/js/vendor/jquery.countdown.min.js"></script>
+    <script src="/static/js/vendor/sal.js"></script>
+    <script src="/static/js/vendor/jquery.magnific-popup.min.js"></script>
+    <script src="/static/js/vendor/imagesloaded.pkgd.min.js"></script>
+    <script src="/static/js/vendor/isotope.pkgd.min.js"></script>
+    <script src="/static/js/vendor/counterup.js"></script>
+    <script src="/static/js/vendor/waypoints.min.js"></script>
 
     <!-- Main JS -->
-    <script src="static/js/main.js"></script>
+    <script src="/static/js/main.js"></script>
 
 </body>
 

@@ -7,7 +7,6 @@ from sqlalchemy.exc import IntegrityError
 from models import db, connect_db, User, Character, Comic, Review, Order, Transaction
 from forms import UserSignUpForm, EditUserForm, LoginForm, UserSignInForm
 from secret import COMIC_API_KEY
-
 CURR_USER_KEY = "curr_user"
 
 
@@ -232,6 +231,7 @@ def logout():
 
 @app.route('/')
 def homepage():
+    
     return render_template('shop.html')
 
 
