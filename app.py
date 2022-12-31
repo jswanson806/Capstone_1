@@ -5,7 +5,7 @@ from flask import Flask, jsonify, make_response, render_template, request, flash
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from models import db, connect_db, User, Character, Comic, Review, Order, Transaction
-from forms import UserSignUpForm, EditUserForm, LoginForm, UserSignInForm
+from forms import UserSignUpForm, EditUserForm, LoginForm, UserSignInForm, ShippingAddressForm, BillingAddressForm
 from secret import COMIC_API_KEY
 CURR_USER_KEY = "curr_user"
 
@@ -231,7 +231,8 @@ def logout():
 
 @app.route('/')
 def homepage():
-    
+    """Show shop main page."""
+
     return render_template('shop.html')
 
 
@@ -291,19 +292,43 @@ def sign_in_page():
     # if form validation fails, rerender the form
     return render_template('sign-in.html', form=form)
 
+@app.route('/logout')
+def sign_out_user():
+    logout()
+    
+    return redirect('/signin')
+
 
 #*************************User Routes*************************
 
-@app.route('/users/<int:user_id>/account')
+@app.route('/users/<int:user_id>/account', methods=["GET", "POST"])
 def show_user_profile(user_id):
     """Show the user account information."""
-    if g in session:
+    if g.user.id != user_id:
+        flash("Access Unauthorized.", "danger")
+        return redirect('/signin')
 
-        user = User.query.get_or_404(user_id)
-        return render_template('my-account.html', user=user)
+    user = User.query.get_or_404(user_id)
+    
+    form = EditUserForm(obj=user)
 
-    flash('Login to view this page.', "danger")
-    return redirect('/signin')
+    if CURR_USER_KEY in session:
+        if form.validate_on_submit():
+            user.username=form.username.data
+            user.first_name=form.first_name.data
+            user.last_name=form.last_name.data
+            user.mobile=form.mobile.data
+            user.email=form.email.data
+            user = User.authenticate(form.username.data, form.password.data)
+
+            if user:
+                db.session.commit()
+                return redirect(f'/users/{user.id}/account')
+            else:
+                flash('Incorrect password')
+                return redirect('/')
+
+    return render_template('my-account.html', form=form)
 
 
 @app.route('/users/<int:user_id>/edit', methods=["GET", "POST"])
