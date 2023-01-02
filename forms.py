@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, TextAreaField, SelectField
+from wtforms import StringField, PasswordField, IntegerField, SelectField
 from wtforms.validators import DataRequired, Email, Length
 
 states = [
@@ -104,3 +104,8 @@ class BillingAddressForm(FlaskForm):
     state = SelectField('State', choices=states, validators=[DataRequired()])
     city = StringField('City', validators=[DataRequired()])
     zip_code = StringField('XXXXX', validators=[Length(min=5)])
+
+class CartForm(FlaskForm):
+    """Form for cart quantities."""
+
+    quantity = IntegerField('Quantity', validators=[DataRequired()])
