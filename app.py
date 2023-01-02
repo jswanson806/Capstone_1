@@ -5,10 +5,10 @@ from flask import Flask, jsonify, make_response, render_template, request, flash
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from models import db, connect_db, User, Character, Comic, Review, Order, Transaction
-from forms import UserSignUpForm, EditUserForm, LoginForm, UserSignInForm, ShippingAddressForm, BillingAddressForm
+from forms import UserSignUpForm, EditUserForm, LoginForm, UserSignInForm, ShippingAddressForm, BillingAddressForm, CartForm
 from secret import COMIC_API_KEY
-CURR_USER_KEY = "curr_user"
 
+CURR_USER_KEY = "curr_user"
 
 
 app = Flask(__name__)
@@ -232,7 +232,7 @@ def logout():
 @app.route('/')
 def homepage():
     """Show shop main page."""
-
+ 
     return render_template('shop.html')
 
 
@@ -294,6 +294,7 @@ def sign_in_page():
 
 @app.route('/logout')
 def sign_out_user():
+    """logs the user out."""
     logout()
     
     return redirect('/signin')
@@ -329,17 +330,6 @@ def show_user_profile(user_id):
                 return redirect('/')
 
     return render_template('my-account.html', form=form)
-
-
-@app.route('/users/<int:user_id>/edit', methods=["GET", "POST"])
-def edit_user_profile(user_id):
-    """Apply changes to the user information.
-    
-    Show form if GET. 
-    If valid, update user information in db -> redirect to user account page.
-    """
-
-    return redirect(f'/users/{user_id}/account')
 
 
 @app.route('/users/<int:user_id>/reading')
@@ -458,24 +448,81 @@ def show_character_details(character_id):
 
 #***************************************Cart Routes***************************************
 
-@app.route('/cart')
-def show_cart_details():
+@app.route('/cart', methods=["GET", "POST"])
+def show_session_cart():
     """Show contents of current cart in session."""
+    form = CartForm()
+    cart_contents = []
+    subtotal = 0
+   
+    for item in session['cart']:
+        # get the comic from the database
+        comic = Comic.query.get_or_404(item['id'])
+        item_price = round(float(item[comic.name]) * float(comic.price), 2)
+        print('###################', item_price)
+        # append the comic to the cart_contents list
+        cart_contents.append((comic, int(item[comic.name]), item_price))
+        # update the subtotal with the price of each comic in the session cart
+        subtotal += item_price
+       
+        print('#####################', 'CART_CONTENTS:', subtotal)
 
-    return render_template('cart.html')
+
+    return render_template('cart.html', form=form, cart_contents=cart_contents, subtotal=subtotal)
 
 
-@app.route('/cart/add', methods=["POST"])
-def add_to_cart():
+@app.route('/cart/<int:comic_id>/add', methods=["POST"])
+def update_session_cart(comic_id):
     """Add item to cart in session."""
+   
+    comic = Comic.query.get_or_404(comic_id)
 
+    if 'cart' in session:
+        # item is not in the session cart, add it
+        if not any(comic.name in d for d in session['cart']):
+            session['cart'].append({'id': comic.id, comic.name: 1})
+            print('########################', 'IF')
+            print('########################', session['cart'])
+            session.modified = True
+        # item was in the session cart, update the quantity
+        elif any(comic.name in d for d in session['cart']):
+            print('########################', 'ELIF')
+            print('########################', session['cart'])
+            for d in session['cart']:
+                d.update((k, v+1) for k, v in d.items() if k == comic.name)
+            print('#####################', 'UPDATE', comic.name)
+            session.modified = True
+    # cart was not in the session, create one and add the item
+    else:
+        session['cart'] = [{'id': comic.id, comic.name: 1}]
+        session.modified = True
+        print('#######################', 'ELSE')
+
+    return redirect(f'/comic/{comic.id}')
+
+
+
+@app.route('/cart/update', methods=["POST"])
+def edit_cart_contents():
+    """Remove item from cart in session."""
+    form = CartForm()
+    print('##########################', 'DATA', form.quantity.data)
+    if form.validate_on_submit():
+        print('##########################', 'VALIDATED')
+        for d in session['cart']:
+            comic = Comic.query.get_or_404(d['id'])
+            d.update((k, form.quantity.data) for k, v in d.items() if k == comic.name)
+            session.modified = True
+            print('##########################', session['cart'])
+    else:
+        print('############################', 'FUCK')
     return redirect('/cart')
 
 
 @app.route('/cart/remove', methods=["POST"])
-def remove_from_cart():
+def remove_cart_item():
     """Remove item from cart in session."""
-
+    
     return redirect('/cart')
 
 
