@@ -22,7 +22,9 @@
                                 <td class="product-thumbnail"><a href="/{{ character.id }}"><img src="{{ character.icon_image_url }}" alt="Digital Product"></a></td>
                                 <td class="product-title"><a href="/characters/{{ character.id }}">{{ character.name }}</a></td>
                                 <td class="product-stock-status" data-title="Status">{{ character.total_appearances }}</td>
-                                <td class="product-add-character"><a href="user-characters.html" class="axil-btn btn-outline">Favorite</a></td>
+                                <form action="/users/characters/{{ character.id }}", method="POST">
+                                    <td class="product-add-character"><button class="axil-btn btn-outline">Add To Characters</a></td>
+                                </form>
                             </tr>
                             {% endfor %}
                         </tbody>
