@@ -31,9 +31,22 @@ toolbar = DebugToolbarExtension(app)
 
 connect_db(app)
 
+# ****************************Cart Methods*****************************
 
+def calculate_total(subtotal, taxes):
+    """Accepts a subtotal and tax amount and returns the total."""
 
-#*****************************Methods******************************
+    total = round((subtotal + taxes), 2)
+    return total
+
+def calculate_taxes(subtotal):
+    """Accepts a subtotal returns the tax amount."""
+
+    tax_rate = 0.08625
+    taxes = round((subtotal * tax_rate), 2)
+    return taxes
+#*****************************API Methods******************************
+
 
 def get_comic_issue(issue_id):
 
@@ -454,6 +467,7 @@ def show_session_cart():
     form = CartForm()
     cart_contents = []
     subtotal = 0
+
    
     for item in session['cart']:
         # get the comic from the database
@@ -467,8 +481,10 @@ def show_session_cart():
        
         print('#####################', 'CART_CONTENTS:', subtotal)
 
+    taxes = calculate_taxes(subtotal)
+    total = calculate_total(taxes, subtotal)
 
-    return render_template('cart.html', form=form, cart_contents=cart_contents, subtotal=subtotal)
+    return render_template('cart.html', form=form, cart_contents=cart_contents, subtotal=subtotal, taxes=taxes, total=total)
 
 
 @app.route('/cart/<int:comic_id>/add', methods=["POST"])
