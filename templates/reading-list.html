@@ -1,4 +1,4 @@
-{% extends 'wishlist.html' %}
+{% extends 'shop.html' %}
 {% block content %}
         <!-- Start Wishlist Area  -->
         <div class="axil-wishlist-area axil-section-gap">
@@ -13,8 +13,7 @@
                                 <th scope="col" class="product-remove"></th>
                                 <th scope="col" class="product-thumbnail">Issue</th>
                                 <th scope="col" class="product-title">Title</th>
-                                <th scope="col" class="product-price">Unit Price</th>
-                                <th scope="col" class="product-stock-status">Stock Status</th>
+                                <th scope="col" class="product-price">Price</th>
                                 <th scope="col" class="product-add-cart"></th>
                             </tr>
                         </thead>
@@ -28,7 +27,9 @@
                                     <td class="product-title"><a href="/comic/{{ comic.id }}">{{ comic.name }}</a></td>
                                     <td class="product-price" data-title="Price"><span class="currency-symbol">$</span>{{ comic.price }}</td>
                                     <td class="product-stock-status" data-title="Status">In Stock</td>
-                                    <td class="product-add-cart"><a href="cart.html" class="axil-btn btn-outline">Add to Cart</a></td>
+                                    <form action="/cart/{{ comic.id }}/add", method="POST">
+                                        <td class="product-add-cart"><button class="axil-btn btn-outline">Add to Cart</a></td>
+                                    </form>
                                 </tr>
                             {% endfor %}
 

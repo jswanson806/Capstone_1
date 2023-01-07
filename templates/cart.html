@@ -6,7 +6,7 @@
         <div class="axil-product-cart-wrap">
             <div class="product-table-heading">
                 <h4 class="title">Your Cart</h4>
-                <a href="#" class="cart-clear">Clear Shoping Cart</a>
+                <a href="/cart/clear" class="cart-clear">Clear Shoping Cart</a>
             </div>
             <div class="table-responsive">
                 <table class="table axil-product-table axil-cart-table mb--40">
@@ -23,7 +23,7 @@
                     <tbody>
                         {% if cart_contents == [] %}
                             <tr>
-                                <td>Your cart is empty! <a href="/">Go shopping!</a></td>
+                                <td>Your cart is empty!</td>
                             </tr>
 
                         {% endif %}
@@ -48,10 +48,13 @@
                 </table>
             </div>
             <div class="cart-update-btn-area">
-                
+                {% if cart_contents == [] %}
+                <a href="/">Return to the Shop</a>
+                {% else %}
                 <div class="update-btn">
                     <button type="submit" class="axil-btn btn-outline">Update Cart</a>
                 </div>
+                {% endif %}
                 </form>
             </div>
             
@@ -71,30 +74,27 @@
                                         <td>
                                             <div class="input-group">
                                                 <input type="radio" id="radio1" name="shipping" checked>
-                                                <label for="radio1">Free Shippping</label>
-                                            </div>
-                                            <div class="input-group">
-                                                <input type="radio" id="radio2" name="shipping">
-                                                <label for="radio2">Local: $35.00</label>
-                                            </div>
-                                            <div class="input-group">
-                                                <input type="radio" id="radio3" name="shipping">
-                                                <label for="radio3">Flat rate: $12.00</label>
+                                                <label for="radio1">Digital Download</label>
                                             </div>
                                         </td>
                                     </tr>
                                     <tr class="order-tax">
-                                        <td>State Tax</td>
-                                        <td>$8.00</td>
+                                        <td>Taxes</td>
+                                        <td>Taxes will be calculated at checkout</td>
                                     </tr>
-                                    <tr class="order-total">
+                                    <!-- <tr class="order-total">
                                         <td>Total</td>
                                         <td class="order-total-amount">{{ total }}</td>
-                                    </tr>
+                                    </tr> -->
                                 </tbody>
                             </table>
                         </div>
-                        <a href="checkout.html" class="axil-btn btn-bg-primary checkout-btn">Process to Checkout</a>
+                        {% if cart_contents == [] %}
+                            <p>Add Items to Your Cart to Checkout</p>
+                        
+                        {% else %}
+                            <a href="/checkout/create-session" class="axil-btn btn-bg-primary checkout-btn">Checkout</a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
