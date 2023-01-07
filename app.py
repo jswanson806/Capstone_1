@@ -4,7 +4,7 @@ from flask import Flask, jsonify, make_response, render_template, request, flash
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from models import db, connect_db, User, Character, Comic, Review, Order, Transaction
-from forms import UserSignUpForm, EditUserForm, LoginForm, UserSignInForm, ShippingAddressForm, BillingAddressForm, CartForm
+from forms import UserSignUpForm, EditUserForm, LoginForm, QuantityForm, UserSignInForm, ShippingAddressForm, BillingAddressForm, CartForm
 from methods import calculate_taxes, calculate_total, search_characters, get_character_appearances, get_comic_issue
 CURR_USER_KEY = "curr_user"
 
@@ -272,30 +272,28 @@ def show_character_details(character_id):
 
 #***************************************Cart Routes***************************************
 
-@app.route('/cart', methods=["GET", "POST"])
+@app.route('/cart', methods=["GET"])
 def show_session_cart():
     """Show contents of current cart in session."""
-    form = CartForm()
     cart_contents = []
     subtotal = 0
 
-   
     for item in session['cart']:
         # get the comic from the database
         comic = Comic.query.get_or_404(item['id'])
-        item_price = round(float(item[comic.name]) * float(comic.price), 2)
-        print('###################', item_price)
+        # coerce the item quantity and comic price to float -> multiply them by one another -> round the result to 2 decimals
+        item_subtotal = round(float(item[comic.name]) * float(comic.price), 2)
         # append the comic to the cart_contents list
-        cart_contents.append((comic, int(item[comic.name]), item_price))
+        cart_contents.append((comic, int(item[comic.name]), item_subtotal))
         # update the subtotal with the price of each comic in the session cart
-        subtotal += item_price
-       
-        print('#####################', 'CART_CONTENTS:', subtotal)
-
+        subtotal = round(subtotal + item_subtotal, 2)
+    
+    # calculate the tax amount based on the subtotal
     taxes = calculate_taxes(subtotal)
+    # calculate the total
     total = calculate_total(taxes, subtotal)
 
-    return render_template('cart.html', form=form, cart_contents=cart_contents, subtotal=subtotal, taxes=taxes, total=total)
+    return render_template('cart.html', cart_contents=cart_contents, subtotal=subtotal, taxes=taxes, total=total)
 
 
 @app.route('/cart/<int:comic_id>/add', methods=["POST"])
@@ -305,51 +303,69 @@ def update_session_cart(comic_id):
     comic = Comic.query.get_or_404(comic_id)
 
     if 'cart' in session:
+        
         # item is not in the session cart, add it
         if not any(comic.name in d for d in session['cart']):
+            # use the comic.name as the key and the quantity as the value
             session['cart'].append({'id': comic.id, comic.name: 1})
-            print('########################', 'IF')
-            print('########################', session['cart'])
+            # update the session
             session.modified = True
+
         # item was in the session cart, update the quantity
         elif any(comic.name in d for d in session['cart']):
-            print('########################', 'ELIF')
-            print('########################', session['cart'])
             for d in session['cart']:
+                # increment the quantity of the item by 1
                 d.update((k, v+1) for k, v in d.items() if k == comic.name)
-            print('#####################', 'UPDATE', comic.name)
+            # update the session
             session.modified = True
-    # cart was not in the session, create one and add the item
-    else:
-        session['cart'] = [{'id': comic.id, comic.name: 1}]
-        session.modified = True
-        print('#######################', 'ELSE')
 
+    # cart was not in the session
+    else:
+        # create the session cart with the comic being added
+        session['cart'] = [{'id': comic.id, comic.name: 1}]
+        # update the session
+        session.modified = True
+
+    # stay on the comic details page
     return redirect(f'/comic/{comic.id}')
 
 
 
-@app.route('/cart/update', methods=["POST"])
+@app.route('/cart/update')
 def edit_cart_contents():
     """Remove item from cart in session."""
-    form = CartForm()
-    print('##########################', 'DATA', form.quantity.data)
-    if form.validate_on_submit():
-        print('##########################', 'VALIDATED')
+    # dictionary to hold the quantities from the query params
+    quantities = {}
+    # get the query params (quantity inputs from cart items)
+    args = request.args
+    # if parameters were passed
+    if args:
+        # iterate over the k,v pairs and add them to the quantities dict
+        for key, value in args.items():
+            quantities.update({key:value})
+        # iterate over cart in session
         for d in session['cart']:
+            # get the comic from the db
             comic = Comic.query.get_or_404(d['id'])
-            d.update((k, form.quantity.data) for k, v in d.items() if k == comic.name)
-            session.modified = True
-            print('##########################', session['cart'])
-    else:
-        print('############################', 'FUCK')
+            # update the item quantity value if the key matches the comic.name
+            d.update((k, quantities[str(d['id'])]) for k, v in d.items() if k == comic.name)
+        # update the session
+        session.modified = True 
+    # redirect to cart (price information will be updated in the /cart route)
     return redirect('/cart')
 
 
-@app.route('/cart/remove', methods=["POST"])
-def remove_cart_item():
+@app.route('/cart/remove/<int:comic_id>')
+def remove_cart_item(comic_id):
     """Remove item from cart in session."""
-    
+    for i in range(len(session['cart'])):
+        print('####################', 'item', i)
+        if session['cart'][i]['id'] == comic_id:
+            print('###########################', 'IF')
+            del session['cart'][i]
+            session.modified = True
+            break
+    print('####################', session['cart'])
     return redirect('/cart')
 
 
