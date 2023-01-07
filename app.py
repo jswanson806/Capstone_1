@@ -137,14 +137,15 @@ def sign_out_user():
 @app.route('/users/<int:user_id>/account', methods=["GET", "POST"])
 def show_user_profile(user_id):
     """Show the user account information."""
+
     if g.user.id != user_id:
         flash("Access Unauthorized.", "danger")
         return redirect('/signin')
-
+    # get the user object from the db
     user = User.query.get_or_404(user_id)
-    
+    # initialize the form
     form = EditUserForm(obj=user)
-
+    # check the session for a user key
     if CURR_USER_KEY in session:
         if form.validate_on_submit():
             user.username=form.username.data
@@ -153,11 +154,13 @@ def show_user_profile(user_id):
             user.mobile=form.mobile.data
             user.email=form.email.data
             user = User.authenticate(form.username.data, form.password.data)
-
+            # check for authentication success
             if user:
+                # commit the changes to the user object
                 db.session.commit()
                 return redirect(f'/users/{user.id}/account')
             else:
+                # flash msg if authentication fails
                 flash('Incorrect password')
                 return redirect('/')
 
@@ -184,10 +187,11 @@ def add_reading_list_item(comic_id):
     if not g.user:
         flash("Login to save comics", "danger")
         return redirect('/')
-
+    # get the comic object from the db
     comic = Comic.query.get_or_404(comic_id)
-
+    # get the user from the db
     user = User.query.get(g.user.id)
+    # add the comic object to the users reading list
     user.reading.append(comic)
     db.session.commit()
 
@@ -198,11 +202,12 @@ def add_reading_list_item(comic_id):
 def remove_wishlist_item(comic_id):
     """Remove comic from user reading list."""
 
-    if not g.user.id:
+    if not g.user:
         flash("Access Unauthorized.", "danger")
         return redirect('/signin')
-    
+    # get the comic object from the db
     comic = Comic.query.get_or_404(comic_id)
+    # remove the comic object from the users reading list
     g.user.reading.remove(comic)
 
     db.session.commit()
@@ -231,11 +236,11 @@ def add_character(character_id):
     if not g.user:
         flash("Login to save characters.", "danger")
         return redirect('/signin')
-    
+    # get the character from the db
     character = Character.query.get_or_404(character_id)
-
+    # get the user from the db
     user = User.query.get_or_404(g.user.id)
-
+    # append the character to user.characters
     user.characters.append(character)
 
     db.session.commit()
@@ -246,8 +251,8 @@ def add_character(character_id):
 @app.route('/users/<int:character_id>/remove_character', methods=["POST"])
 def remove_character(character_id):
     """Remove character from list of user's saved characters."""
-
-    if not g.user.id:
+    
+    if not g.user:
         flash("Access Unauthorized.", "danger")
         return redirect('/signin')
     
@@ -263,8 +268,8 @@ def remove_character(character_id):
 @app.route('/characters')
 def find_characters():
     """Find characters matching keyword search."""
-    # get matching results from api - limit 100
     args = request.args['prod-search']
+    # get matching results from api (limit 100) or local db if characters exist already
     search_res = search_characters(args)
     
     return render_template('characters-search.html', characters=search_res)
@@ -315,6 +320,7 @@ def update_session_cart(comic_id):
    
     comic = Comic.query.get_or_404(comic_id)
 
+    # check for the cart in the session
     if 'cart' in session:
         
         # item is not in the session cart, add it
@@ -371,18 +377,19 @@ def edit_cart_contents():
 @app.route('/cart/remove/<int:comic_id>')
 def remove_cart_item(comic_id):
     """Remove item from cart in session."""
-    # loop 
+    
     for i in range(len(session['cart'])):
-        # 
+        # remove the item matching the comid_id in the session
         if session['cart'][i]['id'] == comic_id:
             del session['cart'][i]
             session.modified = True
+            # exit the loop after the item has been removed
             break
     return redirect('/cart')
 
 @app.route("/cart/clear")
 def clear_cart_contents():
-
+    # iterate over all items in the session cart and remove them one-by-one
     for i in range(len(session['cart'])):
         session['cart'].pop([i])
     session.modified = True
