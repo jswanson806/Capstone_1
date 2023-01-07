@@ -9,6 +9,3 @@
 
 3. ### Mail Jet - Email API
 [Mailjet](https://www.mailjet.com)  
-
-4. ### Google Maps - Address Validation API
-[GoogleMaps](https://developers.google.com/maps/documentation/address-validation/requests-validate-address)
