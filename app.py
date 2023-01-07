@@ -4,10 +4,13 @@ from flask import Flask, jsonify, make_response, render_template, request, flash
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from models import db, connect_db, User, Character, Comic, Review, Order, Transaction
-from forms import UserSignUpForm, EditUserForm, LoginForm, QuantityForm, UserSignInForm, ShippingAddressForm, BillingAddressForm, CartForm
+from forms import UserSignUpForm, EditUserForm, LoginForm, UserSignInForm, ShippingAddressForm, BillingAddressForm
 from methods import calculate_taxes, calculate_total, search_characters, get_character_appearances, get_comic_issue
-CURR_USER_KEY = "curr_user"
+from secret import STRIPE_TEST_API_KEY
+import stripe
 
+CURR_USER_KEY = "curr_user"
+stripe.api_key = STRIPE_TEST_API_KEY
 
 app = Flask(__name__)
 
@@ -56,8 +59,13 @@ def logout():
 @app.route('/')
 def homepage():
     """Show shop main page."""
- 
-    return render_template('shop.html')
+
+    if g.user:
+        user = g.user
+    else:
+        user = None
+        
+    return render_template('shop.html', user=user)
 
 
 @app.route('/signup', methods=["GET", "POST"])
@@ -256,8 +264,8 @@ def remove_character(character_id):
 def find_characters():
     """Find characters matching keyword search."""
     # get matching results from api - limit 100
-  
-    search_res = search_characters('Raven')
+    args = request.args['prod-search']
+    search_res = search_characters(args)
     
     return render_template('characters-search.html', characters=search_res)
 
@@ -281,7 +289,8 @@ def show_session_cart():
     for item in session['cart']:
         # get the comic from the database
         comic = Comic.query.get_or_404(item['id'])
-        # coerce the item quantity and comic price to float -> multiply them by one another -> round the result to 2 decimals
+        # coerce the item quantity and comic price to float -> multiply them by one another 
+        # -> round the result to 2 decimals
         item_subtotal = round(float(item[comic.name]) * float(comic.price), 2)
         # append the comic to the cart_contents list
         cart_contents.append((comic, int(item[comic.name]), item_subtotal))
@@ -293,7 +302,11 @@ def show_session_cart():
     # calculate the total
     total = calculate_total(taxes, subtotal)
 
-    return render_template('cart.html', cart_contents=cart_contents, subtotal=subtotal, taxes=taxes, total=total)
+    return render_template('cart.html', 
+                            cart_contents=cart_contents, 
+                            subtotal=subtotal, 
+                            taxes=taxes, 
+                            total=total)
 
 
 @app.route('/cart/<int:comic_id>/add', methods=["POST"])
@@ -327,7 +340,7 @@ def update_session_cart(comic_id):
         session.modified = True
 
     # stay on the comic details page
-    return redirect(f'/comic/{comic.id}')
+    return redirect('/cart')
 
 
 
@@ -358,26 +371,60 @@ def edit_cart_contents():
 @app.route('/cart/remove/<int:comic_id>')
 def remove_cart_item(comic_id):
     """Remove item from cart in session."""
+    # loop 
     for i in range(len(session['cart'])):
-        print('####################', 'item', i)
+        # 
         if session['cart'][i]['id'] == comic_id:
-            print('###########################', 'IF')
             del session['cart'][i]
             session.modified = True
             break
-    print('####################', session['cart'])
     return redirect('/cart')
 
+@app.route("/cart/clear")
+def clear_cart_contents():
 
-@app.route('/cart/checkout', methods=["GET", "POST"])
-def show_checkout_form():
-    """Show checkout form.
-    
-    Show form if GET.
-    If valid, process payment -> create new order -> save order to db
-    """
+    for i in range(len(session['cart'])):
+        session['cart'].pop([i])
+    session.modified = True
 
-    return render_template('checkout.html')
+    return redirect("/cart")
+
+#******************************************Checkout Routes***************************************
+
+@app.route('/checkout/create-session', methods=["GET","POST"])
+def create_checkout_session():
+    """Create checkout session"""
+    line_items_list = []
+
+    for d in session['cart']:
+        comic = Comic.query.get_or_404(d['id'])
+        line_item={}
+        line_item["price"] = 'price_1MNfjXDugXxFxym65oPw8FJx'
+        line_item["quantity"] = d[comic.name]
+
+        line_items_list.append(dict(line_item))
+
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            line_items=line_items_list,
+            mode='payment',
+            success_url='http://127.0.0.1:5000/checkout/success',
+            cancel_url='http://127.0.0.1:5000/checkout/cancel',
+        )
+    except Exception as e:
+        return str(e)
+
+    return redirect(checkout_session.url, code=303)
+
+@app.route('/checkout/success')
+def show_checkout_success():
+    """Create checkout session"""
+    return render_template("success.html")
+
+@app.route('/checkout/cancel')
+def show_checkout_cancel():
+    """Create checkout session"""
+    return render_template("cancel.html")
 
 #******************************************Comic Routes***************************************
 
