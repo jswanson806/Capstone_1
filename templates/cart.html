@@ -18,43 +18,41 @@
                             <th scope="col" class="product-price">Price</th>
                             <th scope="col" class="product-quantity">Quantity</th>
                             <th scope="col" class="product-subtotal">Subtotal</th>
-                            <th scope="col" class="product-update"></th>
                         </tr>
                     </thead>
                     <tbody>
+                        {% if cart_contents == [] %}
+                            <tr>
+                                <td>Your cart is empty! <a href="/">Go shopping!</a></td>
+                            </tr>
+
+                        {% endif %}
+
                         {% for item in cart_contents %}
+                        
                         <tr>
-                            <td class="product-remove"><a href="#" class="remove-wishlist"><i class="fal fa-times"></i></a></td>
-                            <td class="product-thumbnail"><a href="single-product.html"><img src="{{ item[0].cover_img }}" alt="Digital Product"></a></td>
-                            <td class="product-title"><a href="single-product.html">{{ item[0].name }}</a></td>
+                            <td class="product-remove"><a href="/cart/remove/{{ item[0].id }}" class="remove-wishlist"><i class="fal fa-times"></i></a></td>
+                            <td class="product-thumbnail"><a href="/comic/{{ item[0].id }}"><img src="{{ item[0].cover_img }}" alt="Digital Product"></a></td>
+                            <td class="product-title"><a href="/comic/{{ item[0].id }}">{{ item[0].name }}</a></td>
                             <td class="product-price" data-title="Price"><span class="currency-symbol">$</span>{{ item[0].price }}</td>
                             <td class="product-quantity" data-title="Qty">
-                            <form action="/cart/update", method="POST", id="cart-form">
-                                <div class="">
-                                    {{ form.hidden_tag() }}
-
-                                    {% for field in form if field.widget.input_type != 'hidden' %}
-                                      {% for error in field.errors %}
-                                        <span class="text-danger">{{ error }}</span>
-                                      {% endfor %}
-                                      {{ field(placeholder=item[1], class="form-control") }}
-                                    {% endfor %}
-
+                            <form action="/cart/update">
+                                <div class="pro-qty">
+                                    <input name="{{ item[0].id }}" type="number" class="quantity-input" value="{{ item[1] }}">
                                 </div>
                             </td>
                             <td class="product-subtotal" data-title="Subtotal"><span class="currency-symbol">$</span>{{ item[2] }}</td>
-                            {% endfor %}
-                            <div class="cart-update-btn-area">
-                                <div class="update-btn">
-                                    <button class="axil-btn btn-outline">Update Cart</a>
-                                </div>
                         </tr>
-                        </form>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
-
+            <div class="cart-update-btn-area">
                 
+                <div class="update-btn">
+                    <button type="submit" class="axil-btn btn-outline">Update Cart</a>
+                </div>
+                </form>
             </div>
             
             <div class="row">
@@ -75,15 +73,23 @@
                                                 <input type="radio" id="radio1" name="shipping" checked>
                                                 <label for="radio1">Free Shippping</label>
                                             </div>
+                                            <div class="input-group">
+                                                <input type="radio" id="radio2" name="shipping">
+                                                <label for="radio2">Local: $35.00</label>
+                                            </div>
+                                            <div class="input-group">
+                                                <input type="radio" id="radio3" name="shipping">
+                                                <label for="radio3">Flat rate: $12.00</label>
+                                            </div>
                                         </td>
                                     </tr>
                                     <tr class="order-tax">
                                         <td>State Tax</td>
-                                        <td>${{ taxes }}</td>
+                                        <td>$8.00</td>
                                     </tr>
                                     <tr class="order-total">
                                         <td>Total</td>
-                                        <td class="order-total-amount">${{ total }}</td>
+                                        <td class="order-total-amount">{{ total }}</td>
                                     </tr>
                                 </tbody>
                             </table>
