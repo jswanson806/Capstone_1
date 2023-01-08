@@ -46,6 +46,7 @@ class Comic(db.Model):
 
     appear_assignments = db.relationship('Character_Appearance', backref='comics', cascade="all, delete-orphan")
     reading_assignments = db.relationship('Reading_List', backref='comics', cascade="all, delete-orphan")
+    order_assignments = db.relationship('Order_Item', backref='comics', cascade="all, delete-orphan")
     
 
 class Character(db.Model):
@@ -69,22 +70,6 @@ class Character(db.Model):
     appear_assignments = db.relationship('Character_Appearance', backref='characters')
     appearances = db.relationship('Comic', secondary='character_appearances', backref='characters')
     character_list_assignments = db.relationship('Character_List', backref='characters', cascade="all, delete-orphan")
-    
-
-
-
-class Review(db.Model):
-    """Reviews model."""
-
-    __tablename__ = "reviews"
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    created = db.Column(db.DateTime, default=datetime.utcnow)
-    title = db.Column(db.Text, nullable=False)
-    stars = db.Column(db.Integer, nullable=False)
-    content = db.Column(db.Text, nullable=False)
-
-    assignments = db.relationship("Comic_Review", backref='reviews')
 
 
 class Order(db.Model):
@@ -92,8 +77,7 @@ class Order(db.Model):
 
     __tablename__ = "orders"
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
     session_id = db.Column(db.Integer, unique=True, nullable=False)
     token = db.Column(db.Text, unique=True, nullable=False)
     order_status = db.Column(db.Text, nullable=False, default="processing")
@@ -105,31 +89,28 @@ class Order(db.Model):
     last_name = db.Column(db.Text, nullable=False)
     mobile = db.Column(db.Text, nullable=False)
     email = db.Column(db.Text, nullable=False)
-    address_line_1 = db.Column(db.Text, nullable=False)
+    address_line_1 = db.Column(db.Text, nullable=True)
     address_line_2 = db.Column(db.Text, nullable=True)
-    city = db.Column(db.Text, nullable=False)
-    state = db.Column(db.Text, nullable=False)
-    country = db.Column(db.Text, nullable=False)
+    city = db.Column(db.Text, nullable=True)
+    state = db.Column(db.Text, nullable=True)
+    country = db.Column(db.Text, nullable=True)
     created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
     notes = db.Column(db.Text, nullable=True)
 
-    items = db.relationship("Order_Item", backref="orders", cascade='all, delete-orphan')
+    user_id = db.Column(db.Integer, 
+                        db.ForeignKey('users.id'), 
+                        primary_key=True
+                        )
+    items = db.relationship("Comic", 
+                            secondary="order_items", 
+                            backref="orders"
+                            )
+                    
+    
+    item_assignments = db.relationship("Order_Item", backref="orders", cascade="all, delete-orphan")
+    transaction_assignments = db.relationship("Order_Transaction", backref="orders", cascade="all, delete-orphan")
 
-class Transaction(db.Model):
-    """Orders model."""
-
-    __tablename__ = "transactions"
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, nullable=False)
-    order_id = db.Column(db.Integer, unique=True, nullable=False)
-    code = db.Column(db.Text, unique=True, nullable=False)
-    type = db.Column(db.Text, nullable=False)
-    payment_status = db.Column(db.Text, nullable=False, default="processing")
-    created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
-    notes = db.Column(db.Text, nullable=True)
 
 # *************************************Through Tables************************************
 
@@ -165,25 +146,6 @@ class Reading_List(db.Model):
                         )
     read = db.Column(db.Boolean, default=False)
 
-class Comic_Review(db.Model):
-    """Mapping reviews to comic issues."""
-
-    __tablename__ = "comic_reviews"
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-
-    user_id = db.Column(db.Integer,
-                        db.ForeignKey('users.id'),
-                        primary_key=True
-                        )
-    review_id = db.Column(db.Integer,
-                        db.ForeignKey('reviews.id'),
-                        primary_key=True
-                        )
-    comic_id = db.Column(db.Integer,
-                        db.ForeignKey('comics.id'),
-                        primary_key=True
-                        )
 
 class Order_Item(db.Model):
     """Mapping comic issues to orders."""
@@ -200,12 +162,38 @@ class Order_Item(db.Model):
                         db.ForeignKey('orders.id'),
                         primary_key=True
                         )
+    transaction_id = db.Column(db.Integer,
+                        db.ForeignKey('transactions.id'),
+                        primary_key=True
+                        )
     quantity = db.Column(db.Integer, nullable=False)
     created = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
     updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
     notes = db.Column(db.Text, nullable=True)
 
+class Order_Transaction(db.Model):
+    """Orders model."""
 
+    __tablename__ = "transactions"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
+    order_number = db.Column(db.Text, unique=True, nullable=False)
+    type = db.Column(db.Text, nullable=False)
+    payment_status = db.Column(db.Text, nullable=False, default="processing")
+    created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+
+    user_id = db.Column(db.Integer, 
+                        db.ForeignKey('users.id'), 
+                        primary_key=True
+                        )
+    order_id = db.Column(db.Integer, 
+                        db.ForeignKey('orders.id'), 
+                        primary_key=True
+                        )
+
+    order_assignments = db.relationship('Order_Item', backref='transactions', cascade="all, delete-orphan")
 
 # *****************************************User Model**********************************************
 
@@ -227,18 +215,20 @@ class User(db.Model):
                                 backref="users"
                                 )
     reading = db.relationship("Comic", 
-                             secondary="reading_lists", 
-                             backref="users"
-                             )
+                            secondary="reading_lists", 
+                            backref="users"
+                            )
+
+    orders = db.relationship("Order",
+                            secondary="transactions",
+                            backref="users"
+                            )
+    assigned_transactions = db.relationship("Order_Transaction", backref="users")
 
     assigned_reading = db.relationship("Reading_List", backref="users")
 
     assigned_characters = db.relationship("Character_List", backref="users")
     
-    reviews = db.relationship("Review", 
-                              secondary="comic_reviews", 
-                              backref="users"
-                              )
 
     # format for easy identification in terminal
     def __repr__(self):
