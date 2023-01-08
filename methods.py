@@ -9,21 +9,6 @@ COMIC_CHARACTER = 'https://comicvine.gamespot.com/api/character/4005-'
 COMIC_ISSUE = 'https://comicvine.gamespot.com/api/issue/4000-'
 
 
-# ****************************Cart Methods*****************************
-
-def calculate_total(subtotal, taxes):
-    """Accepts a subtotal and tax amount and returns the total."""
-
-    total = round((subtotal + taxes), 2)
-    return total
-
-def calculate_taxes(subtotal):
-    """Accepts a subtotal returns the tax amount."""
-
-    tax_rate = 0.08625
-    taxes = round((subtotal * tax_rate), 2)
-    return taxes
-
     
 #*****************************API Methods******************************
 
@@ -172,7 +157,7 @@ def search_characters(search_term):
             total_appearances = data['results'][i]['count_of_issue_appearances']
             icon_image_url = data['results'][i]['image']['icon_url']
             original_url = data['results'][i]['image']['original_url']
-            publisher_id = data['results'][i]['publisher']['id']
+            publisher_id = data['results'][i]['publisher']['id'] or None
             publisher_name = data['results'][i]['publisher']['name']
 
             # create new character instances
