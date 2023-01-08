@@ -3,7 +3,7 @@ import os
 from flask import Flask, jsonify, make_response, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
-from models import db, connect_db, User, Character, Comic, Review, Order, Transaction
+from models import db, connect_db, User, Character, Comic, Order, Order_Transaction
 from forms import UserSignUpForm, EditUserForm, LoginForm, UserSignInForm, ShippingAddressForm, BillingAddressForm
 from methods import calculate_taxes, calculate_total, search_characters, get_character_appearances, get_comic_issue
 from secret import STRIPE_TEST_API_KEY
@@ -405,8 +405,21 @@ def create_checkout_session():
 
     for d in session['cart']:
         comic = Comic.query.get_or_404(d['id'])
+        
+
+        new_product = stripe.Product.create(
+            name=comic.name,
+            default_price_data={
+                "unit_amount": 499,
+                "currency": "usd",
+                "recurring": None,
+            },
+            expand=["default_price"]
+        )
+
+
         line_item={}
-        line_item["price"] = 'price_1MNfjXDugXxFxym65oPw8FJx'
+        line_item["price"] = new_product["default_price"]["id"]
         line_item["quantity"] = d[comic.name]
 
         line_items_list.append(dict(line_item))
@@ -422,6 +435,7 @@ def create_checkout_session():
         return str(e)
 
     return redirect(checkout_session.url, code=303)
+    
 
 @app.route('/checkout/success')
 def show_checkout_success():
