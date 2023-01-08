@@ -5,7 +5,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from models import db, connect_db, User, Character, Comic, Order, Order_Transaction
 from forms import UserSignUpForm, EditUserForm, LoginForm, UserSignInForm, ShippingAddressForm, BillingAddressForm
-from methods import calculate_taxes, calculate_total, search_characters, get_character_appearances, get_comic_issue
+from methods import search_characters, get_character_appearances, get_comic_issue
 from secret import STRIPE_TEST_API_KEY
 import stripe
 
@@ -277,11 +277,13 @@ def find_characters():
 @app.route('/characters/<int:character_id>')
 def show_character_details(character_id):
     """Show single character details page."""
-    character = Character.query.get_or_404(character_id)
     
-    appearances = get_character_appearances(character_id)
-
-    return render_template('character-details.html', character=character, appearances=appearances)
+    character = Character.query.get(character_id)
+    if character:
+        appearances = get_character_appearances(character_id)
+        return render_template('character-details.html', character=character, appearances=appearances)
+    else:
+        return redirect('/')
 
 #***************************************Cart Routes***************************************
 
@@ -291,27 +293,20 @@ def show_session_cart():
     cart_contents = []
     subtotal = 0
 
-    for item in session['cart']:
-        # get the comic from the database
-        comic = Comic.query.get_or_404(item['id'])
-        # coerce the item quantity and comic price to float -> multiply them by one another 
-        # -> round the result to 2 decimals
-        item_subtotal = round(float(item[comic.name]) * float(comic.price), 2)
-        # append the comic to the cart_contents list
-        cart_contents.append((comic, int(item[comic.name]), item_subtotal))
-        # update the subtotal with the price of each comic in the session cart
-        subtotal = round(subtotal + item_subtotal, 2)
-    
-    # calculate the tax amount based on the subtotal
-    taxes = calculate_taxes(subtotal)
-    # calculate the total
-    total = calculate_total(taxes, subtotal)
+    if 'cart' in session:
 
-    return render_template('cart.html', 
-                            cart_contents=cart_contents, 
-                            subtotal=subtotal, 
-                            taxes=taxes, 
-                            total=total)
+        for item in session['cart']:
+            # get the comic from the database
+            comic = Comic.query.get_or_404(item['id'])
+            # coerce the item quantity and comic price to float -> multiply them by one another 
+            # -> round the result to 2 decimals
+            item_subtotal = round(float(item[comic.name]) * float(comic.price), 2)
+            # append the comic to the cart_contents list
+            cart_contents.append((comic, int(item[comic.name]), item_subtotal))
+            # update the subtotal with the price of each comic in the session cart
+            subtotal = round(subtotal + item_subtotal, 2)
+
+    return render_template('cart.html', cart_contents=cart_contents, subtotal=subtotal)
 
 
 @app.route('/cart/<int:comic_id>/add', methods=["POST"])
@@ -329,7 +324,7 @@ def update_session_cart(comic_id):
             session['cart'].append({'id': comic.id, comic.name: 1})
             # update the session
             session.modified = True
-
+            print('########################', 'IF')
         # item was in the session cart, update the quantity
         elif any(comic.name in d for d in session['cart']):
             for d in session['cart']:
@@ -337,14 +332,14 @@ def update_session_cart(comic_id):
                 d.update((k, v+1) for k, v in d.items() if k == comic.name)
             # update the session
             session.modified = True
-
+            print('########################', 'ELIF')
     # cart was not in the session
     else:
         # create the session cart with the comic being added
         session['cart'] = [{'id': comic.id, comic.name: 1}]
         # update the session
         session.modified = True
-
+        print('########################', 'ELSE')
     # stay on the comic details page
     return redirect('/cart')
 
@@ -389,9 +384,11 @@ def remove_cart_item(comic_id):
 
 @app.route("/cart/clear")
 def clear_cart_contents():
-    # iterate over all items in the session cart and remove them one-by-one
-    for i in range(len(session['cart'])):
-        session['cart'].pop([i])
+    # pop each item from the session cart until the session['cart'] length is 0
+    i = 0
+    while i < len(session['cart']):
+        session['cart'].pop(i)
+
     session.modified = True
 
     return redirect("/cart")
@@ -433,7 +430,7 @@ def create_checkout_session():
         )
     except Exception as e:
         return str(e)
-
+    print('#######################', 'checkout', checkout_session)
     return redirect(checkout_session.url, code=303)
     
 
