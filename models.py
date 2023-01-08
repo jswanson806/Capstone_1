@@ -59,7 +59,7 @@ class Character(db.Model):
     real_name = db.Column(db.Text, nullable=True)
     deck = db.Column(db.Text, nullable=True)
     first_appear_issue_id = db.Column(db.Integer, nullable=True)
-    first_appear_issue_num = db.Column(db.Integer, nullable=True)
+    first_appear_issue_num = db.Column(db.Text, nullable=True)
     first_appear_issue_name = db.Column(db.Text, nullable=True)
     total_appearances = db.Column(db.Integer, nullable=True)
     icon_image_url = db.Column(db.Text, default="/static/images/logo/fox-icon-thumb-sm.png")
