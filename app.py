@@ -1,10 +1,11 @@
 
 import os
-from flask import Flask, jsonify, make_response, render_template, request, flash, redirect, session, g
+from flask import Flask, render_template, request, flash, redirect, session, g
+from flask_mail import Mail, Message
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from models import db, connect_db, User, Character, Comic, Order, Order_Transaction
-from forms import UserSignUpForm, EditUserForm, LoginForm, UserSignInForm, ShippingAddressForm, BillingAddressForm
+from forms import UserSignUpForm, EditUserForm, UserSignInForm
 from methods import search_characters, get_character_appearances, get_comic_issue
 from secret import STRIPE_TEST_API_KEY
 import stripe
@@ -24,11 +25,17 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = False
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "it's a secret")
+app.config['MAIL_SERVER']='smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
 toolbar = DebugToolbarExtension(app)
 
 connect_db(app)
 
-
+mail = Mail(app)
 
 
 
@@ -65,7 +72,7 @@ def homepage():
     else:
         user = None
         
-    return render_template('shop.html', user=user)
+    return render_template('about-us.html', user=user)
 
 
 @app.route('/signup', methods=["GET", "POST"])
@@ -89,8 +96,13 @@ def sign_up_page():
             db.session.commit()
         # if user creation fails, flash message and serve the form again
         except IntegrityError:
-            flash("Username is taken", 'danger')
+            flash("Username or Email is taken", 'danger')
             return render_template('sign-up.html', form=form)
+
+        msg = Message('Welcome to Fox Comics!', sender = 'foxcomicsllc@gmail.com', recipients = [form.email.data])
+        msg.html = render_template("welcome-email.html")
+        mail.send(msg)
+        print('####################', 'Sent!', msg)
 
         login(user)
 
