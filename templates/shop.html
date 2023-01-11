@@ -185,10 +185,12 @@
                 <div class="row align-items-center">
                     <div class="col-lg-6 col-md-8">
                             <h1 class="title">Welcome to Fox Comics!</h1><br>
-                            <h2 class="title">Begin by Searching for a Character</h2>
+                            <p>  <br> 
+                            Looking for something more? Create an account and manage order history and a list of comics and characters you find interesting. Found something you like? Add those comics to your cart and start reading!</p>
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-8">
+                    <h4 class="title">Begin by Searching for a Character</h4>
                     <form action="/characters">
                         <input type="text" name="prod-search" id="prod-search" value="" maxlength="128" placeholder="Who are you looking for?" autocomplete="off">
                         <button type="submit" class="icon wooc-btn-search">
@@ -389,12 +391,13 @@
     <!-- Header Search Modal End -->
     <div class="header-search-modal" id="header-search-modal">
         <button class="card-close sidebar-close"><i class="fas fa-times"></i></button>
-        <div class="header-search-wrap">
+        <div class="">
             <div class="card-header">
                 <form action="/characters">
                     <div class="input-group">
-                        <input type="search" class="form-control" name="prod-search" id="prod-search" placeholder="Write Something....">
                         <button type="submit" class="axil-btn btn-bg-primary"><i class="far fa-search"></i></button>
+                        <input type="search" class="form-control" name="prod-search" id="prod-search" placeholder="Write Something....">
+                        
                     </div>
                 </form>
             </div>

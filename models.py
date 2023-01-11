@@ -269,6 +269,7 @@ class User(db.Model):
                 return user
         
         return False
+        
 
 # ********************************************Connect Database******************************************
 def connect_db(app):
