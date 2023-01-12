@@ -41,10 +41,11 @@
 
                                                 <!-- Start Product Action  -->
                                                 <ul class="product-action d-flex-center mb--0">
-                                                    <!-- <li class="add-to-cart"><a href="cart.html" class="axil-btn btn-bg-primary">Add to Cart</a></li> -->
+                                                    {% if g.user %}
                                                     <form action="/users/characters/{{ character.id }}", method="POST">
                                                         <li class="wishlist"><button class="axil-btn wishlist-btn"><i class="far fa-heart"></i></button></li>
                                                     </form>
+                                                    {% endif %}
                                                 </ul>
                                                 <!-- End Product Action  -->
 
