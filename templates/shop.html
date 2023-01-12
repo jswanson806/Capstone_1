@@ -93,16 +93,18 @@
                     <div class="header-action">
                         <ul class="action-list">
                             <li class="axil-search d-xl-block d-none">
-                                <input type="search" class="placeholder product-search-input" name="search2" id="search2" value="" maxlength="128" placeholder="What are you looking for?" autocomplete="off">
-                                <button type="submit" class="icon wooc-btn-search">
-                                    <i class="flaticon-magnifying-glass"></i>
-                                </button>
+                                <form action="/characters">
+                                    <input type="text" name="prod-search" id="prod-search" value="" maxlength="128" placeholder="Looking for Someone?" autocomplete="off">
+                                    <button type="submit" class="icon wooc-btn-search">
+                                        <i class="flaticon-magnifying-glass"></i>
+                                    </button>
+                                </form>
                             </li>
-                            <li class="axil-search d-xl-none d-block">
+                            <!-- <li class="axil-search d-xl-none d-block">
                                 <a href="javascript:void(0)" class="header-search-icon" title="Search">
                                     <i class="flaticon-magnifying-glass"></i>
                                 </a>
-                            </li>
+                            </li> -->
                             {% if g.user %}
                             <li class="wishlist">
                                 <a href="/users/{{ g.user.id }}/reading">
@@ -191,12 +193,16 @@
                 </div>
                 <div class="col-lg-6 col-md-8">
                     <h4 class="title">Begin by Searching for a Character</h4>
-                    <form action="/characters">
-                        <input type="text" name="prod-search" id="prod-search" value="" maxlength="128" placeholder="Who are you looking for?" autocomplete="off">
-                        <button type="submit" class="icon wooc-btn-search">
-                            <i class="flaticon-magnifying-glass">Search</i>
-                        </button>
-                    </form>
+                    <ul class="action-list">
+                        <li class="axil-search d-xl-block d-none">
+                            <form action="/characters">
+                                <input type="text" name="prod-search" id="prod-search" value="" maxlength="128" placeholder="Looking for Someone?" autocomplete="off">
+                                <button type="submit" class="icon wooc-btn-search">
+                                    <i class="flaticon-magnifying-glass"></i>
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
                 </div>
                 
             </div>
