@@ -56,9 +56,11 @@
                                                 <form action="/cart/{{ comic.id }}/add", method="POST">
                                                     <li class="add-to-cart"><button class="axil-btn btn-bg-primary">Add to Cart</button></li>
                                                 </form>
+                                                {% if g.user %}
                                                 <form action="/users/reading_list/{{ comic.id }}", method="POST">
                                                     <li class="wishlist"><button class="axil-btn wishlist-btn"><i class="far fa-heart"></i></button></li>
                                                 </form>
+                                                {% endif %}
                                             </ul>
                                             <!-- End Product Action  -->
                                         </div>
