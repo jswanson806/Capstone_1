@@ -36,14 +36,10 @@
         <div class="signin-header">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <a href="/" class="site-logo"><img src="/./static/images/logo/fox-icon-thumb-sm.png" alt="logo"></a>
+                    <a href="/" class="site-logo"><h2>Fox Comics</h2></a>
+                    
                 </div>
-                <div class="col-md-6">
-                    <div class="singin-header-btn">
-                        <p>Already a member?</p>
-                        <a href="/signin" class="axil-btn btn-bg-secondary sign-up-btn">Sign In</a>
-                    </div>
-                </div>
+                
             </div>
         </div>
         <!-- End Header -->
@@ -54,9 +50,55 @@
                     <h3 class="title">We Offer the Best Products</h3>
                 </div>
             </div> -->
-            <div class="col-lg-6 offset-xl-2">
+            <div class="axil-about-area about-style-1 axil-section-gap ">
+                <div class="container">
+                    <div class="row align-items-center">
+                        <div class="col-xl-4 col-lg-6">
+                            <div class="about-thumbnail">
+                                <div class="thumbnail">
+                                    <img src="/./static/images/logo/fox-icon-lg.png" alt="Fox Comics, LLC Logo">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-8 col-lg-6">
+                            <div class="about-content content-right">
+                                <h3 class="title">I'm New Here</h3>
+                                <div class="row">
+                                    <div class="col-xl-6">
+                                        <p class="b2 mb--55">Enter your details below</p>
+                                        <form method="POST" id="user_form">
+                                            {{ form.hidden_tag() }}
+                                        
+                                            {% for field in form if field.widget.input_type != 'hidden' %}
+                                              {% for error in field.errors %}
+                                                <span class="text-danger">{{ error }}</span>
+                                              {% endfor %}
+                                              <div class="form-group">
+                                              {{ field(placeholder=field.label.text, class="form-control") }}
+                                              </div>
+                                            {% endfor %}
+                                          
+                                            <div class="form-group">
+                                                <button type="submit" class="axil-btn btn-bg-primary submit-btn">Create Account</button>
+                                            </div>
+                                        </form>
+                                        <div class="col-md-6">
+                                            <div class="singin-header-btn">
+                                                <p>Already a member?</p>
+                                                <a href="/signin" class="axil-btn btn-bg-secondary sign-up-btn">Sign In</a>
+                                            </div>
+                                        </div>
+                                </div>
+    
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- <div class="col-lg-6 offset-xl-2">
                 <div class="axil-signin-form-wrap">
                     <div class="axil-signin-form">
+                        <h1>Fox Comics</h1>
                         <h3 class="title">I'm New Here</h3>
                         <p class="b2 mb--55">Enter your details below</p>
                         <form method="POST" id="user_form">
@@ -77,7 +119,7 @@
                         </form>
                     </div>
                 </div>
-            </div>
+            </div> -->
         </div>
     </div>
 
