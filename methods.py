@@ -50,13 +50,13 @@ def get_comic_issue(issue_id):
                         )
 
 
-        for i in data['results']['character_credits']:
-            # check for character in SQL db
-            exists = db.session.query(db.exists().where(Character.id == i.get('id'))).scalar()
+        # for i in data['results']['character_credits']:
+        #     # check for character in SQL db
+        #     exists = db.session.query(db.exists().where(Character.id == i.get('id'))).scalar()
             
-            if exists:
-                character = Character.query.get(i.get('id'))
-                character.appearances.append(new_comic)
+        #     if exists:
+        #         character = Character.query.get(i.get('id'))
+        #         character.appearances.append(new_comic)
 
         db.session.add(new_comic)
         db.session.commit()
@@ -109,58 +109,111 @@ def search_characters(search_term):
     Add the characters to the SQL db and return the list of character SQLAlchemy objects
     """
 
-    # check for characters similar to search_term in SQL db
-    exists = db.session.query(db.exists().where(Character.name.like(f'%{search_term}%'))).scalar()
-
-    # if characters are already present in SQL db, query the characters and return them
-    if exists:
-        characters = db.session.query(Character).filter(Character.name.like(f'%{search_term}%')).from_self()
-        return characters
+    
 
     # if no matching characters are found in SQL db, query the API
     # -> iterate over response data and add characters to the database
     # -> return the list of characters from the API
 
-    else:
+    
 
-        key = COMIC_API_KEY
-        url = COMIC_CHARACTERS      
-        search_results = []
+    key = COMIC_API_KEY
+    url = COMIC_CHARACTERS      
+    search_results = []
+    params = {"api_key":key, 
+                   "field_list":"id,name,real_name,aliases,deck,first_appeared_in_issue,count_of_issue_appearances,image,api_detail_url,publisher",
+                   "filter":f"name:{search_term}",
+                   "format":"json"
+                   }
+    headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+    "Content-Type": "application/json"
+    }
 
-        params = {"api_key":key, 
-                       "field_list":"id,name,real_name,aliases,deck,first_appeared_in_issue,count_of_issue_appearances,image,api_detail_url,publisher",
-                       "filter":f"name:{search_term}",
-                       "format":"json"
-                       }
-
-        headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
-        "Content-Type": "application/json"
-        }
-
+    try:
         res = requests.get(url, headers=headers, params=params)
+        res.raise_for_status()
+    except requests.exceptions.HTTPError as errh:
+        return "An Http Error occurred:" + repr(errh)
+    except requests.exceptions.ConnectionError as errc:
+        return "An Error Connecting to the API occurred:" + repr(errc)
+    except requests.exceptions.Timeout as errt:
+        return "A Timeout Error occurred:" + repr(errt)
+    except requests.exceptions.RequestException as err:
+        return "An Unknown Error occurred" + repr(err)
+    
 
-        data = res.json()
+    data = res.json() 
+    # count of returned characters from api search
+    results_count = data['number_of_page_results']
+    # iterate over data and extract character information
 
-        # count of returned characters from api search
-        results_count = data['number_of_page_results']
+    
+    for i in range (0,results_count):
+        result = data['results'][i]
 
-        # iterate over data and extract character information
-        for i in range (0,results_count):
-            id = data['results'][i]['id']
-            name = data['results'][i]['name']
-            real_name = data['results'][i]['real_name']
-            deck = data['results'][i]['deck']
-            first_appear_issue_id = data['results'][i]['first_appeared_in_issue']['id']
-            first_appear_issue_num = data['results'][i]['first_appeared_in_issue']['issue_number']
-            first_appear_issue_name = data['results'][i]['first_appeared_in_issue']['name']
-            total_appearances = data['results'][i]['count_of_issue_appearances']
-            icon_image_url = data['results'][i]['image']['icon_url']
-            original_url = data['results'][i]['image']['original_url']
-            publisher_id = data['results'][i]['publisher']['id'] or None
-            publisher_name = data['results'][i]['publisher']['name']
+        id = result['id']
+        name = result['name']
+        
+        if result['real_name'] != None:
+            real_name = result['real_name']
+        else:
+            real_name = None
 
-            # create new character instances
+        if result['deck'] != None:
+            deck = result['deck']
+        else:
+            deck = None
+
+        if result['first_appeared_in_issue'] != None:
+            first_appear_issue_id = result['first_appeared_in_issue']['id']
+        else:
+            first_appear_issue_id = None
+
+        if result['first_appeared_in_issue'] != None:
+            first_appear_issue_num = result['first_appeared_in_issue']['issue_number']
+        else:
+            first_appear_issue_num = None
+
+        if result['first_appeared_in_issue'] != None:
+            first_appear_issue_name = result['first_appeared_in_issue']['name']
+        else: 
+            first_appear_issue_name = None
+
+        if result['count_of_issue_appearances'] != None:
+            total_appearances = result['count_of_issue_appearances']
+        else:
+            total_appearances = None
+
+        if result['image']['icon_url'] != None:
+            icon_image_url = result['image']['icon_url']
+        else:
+            icon_image_url = None
+
+        if result['image']['original_url'] != None:
+            original_url = result['image']['original_url']
+        else:
+            original_url = None
+
+        if result['publisher']['id'] != None:
+            publisher_id = result['publisher']['id']
+        else:
+            publisher_id = None
+
+        if result['publisher']['name'] != None:
+            publisher_name = result['publisher']['name']
+        else:
+            publisher_name = None
+
+        # check for character in SQL db
+        exists = db.session.query(db.exists().where(Character.id == id)).scalar()
+        # if character is already present in SQL db, query the characters and append them to search_results
+        if exists:
+            character = Character.query.get(id)
+            search_results.append(character)
+        
+        else:
+            # if the character is not in the db already -> create new character instance
             new_character = Character(id=id,
                                 name=name, 
                                 real_name=real_name, 
@@ -177,7 +230,8 @@ def search_characters(search_term):
             # add and commit new character instance to the SQL db                    
             db.session.add(new_character)
             db.session.commit()
+
             # append character SQLAlchemy object to the search_results list
             search_results.append(new_character)
 
-        return search_results
+    return search_results
