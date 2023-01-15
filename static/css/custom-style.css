@@ -1,0 +1,33 @@
+.header-style-5 .header-action .axil-search input {
+    border: 1px solid #000000;
+    height: 40px;
+}
+
+.wrapper {
+    position: relative;
+    display: flex;
+    min-width: 100px;
+    top: 15px;
+  }
+
+  .search-icon {
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    width: 14px;
+  }
+
+  .search {
+    border: 1px solid rgb(0, 0, 0);
+    border-radius: 5px;
+    height: 35px;
+    width: 100%;
+    padding: 0px 10px 0px 40px;
+    outline: 0;
+    background-color: white;
+  }
+
+  .search:hover, .search:focus {
+    border: 1px solid #772cdd;
+    background-color: white;
+  }
