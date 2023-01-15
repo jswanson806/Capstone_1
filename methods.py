@@ -49,15 +49,6 @@ def get_comic_issue(issue_id):
                         deck = data['results']['deck']
                         )
 
-
-        # for i in data['results']['character_credits']:
-        #     # check for character in SQL db
-        #     exists = db.session.query(db.exists().where(Character.id == i.get('id'))).scalar()
-            
-        #     if exists:
-        #         character = Character.query.get(i.get('id'))
-        #         character.appearances.append(new_comic)
-
         db.session.add(new_comic)
         db.session.commit()
 
