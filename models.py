@@ -79,23 +79,21 @@ class Order(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
     session_id = db.Column(db.Integer, unique=True, nullable=False)
-    token = db.Column(db.Text, unique=True, nullable=False)
-    order_status = db.Column(db.Text, nullable=False, default="processing")
-    sub_total = db.Column(db.Text, nullable=False)
-    tax = db.Column(db.Text, nullable=False)
-    shipping = db.Column(db.Text, nullable=False)
-    total = db.Column(db.Text, nullable=False)
-    first_name = db.Column(db.Text, nullable=False)
-    last_name = db.Column(db.Text, nullable=False)
-    mobile = db.Column(db.Text, nullable=False)
-    email = db.Column(db.Text, nullable=False)
+    order_status = db.Column(db.Text, nullable=True, default="processing")
+    sub_total = db.Column(db.Text, nullable=True)
+    tax = db.Column(db.Text, nullable=True)
+    shipping = db.Column(db.Text, nullable=True)
+    total = db.Column(db.Text, nullable=True)
+    customer_name = db.Column(db.Text, nullable=True)
+    phone = db.Column(db.Text, nullable=True)
+    email = db.Column(db.Text, nullable=True)
     address_line_1 = db.Column(db.Text, nullable=True)
     address_line_2 = db.Column(db.Text, nullable=True)
     city = db.Column(db.Text, nullable=True)
     state = db.Column(db.Text, nullable=True)
     country = db.Column(db.Text, nullable=True)
     created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
+    updated = db.Column(db.DateTime, nullable=True)
     notes = db.Column(db.Text, nullable=True)
 
     user_id = db.Column(db.Integer, 
@@ -162,17 +160,10 @@ class Order_Item(db.Model):
                         db.ForeignKey('orders.id', ondelete="cascade"),
                         primary_key=True
                         )
-    transaction_id = db.Column(db.Integer,
-                        db.ForeignKey('transactions.id', ondelete="cascade"),
-                        primary_key=True
-                        )
-    quantity = db.Column(db.Integer, nullable=False)
-    created = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
-    updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
-    notes = db.Column(db.Text, nullable=True)
+
 
 class Order_Transaction(db.Model):
-    """Orders model."""
+    """Transaction model."""
 
     __tablename__ = "transactions"
 
@@ -192,8 +183,6 @@ class Order_Transaction(db.Model):
                         db.ForeignKey('orders.id', ondelete="cascade"), 
                         primary_key=True
                         )
-
-    order_assignments = db.relationship('Order_Item', backref='transactions', cascade="all, delete-orphan")
 
 # *****************************************User Model**********************************************
 
