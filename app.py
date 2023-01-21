@@ -416,7 +416,7 @@ def clear_cart_contents():
 def create_checkout_session():
     """Create checkout session"""
     items_list = []
-    success_url = 'https://fox-comics.herokuapp.com/checkout/success'
+    success_url = 'https://fox-comics.herokuapp.com/checkout/success?session_id={CHECKOUT_SESSION_ID}'
     cancel_url = 'https://fox-comics.herokuapp.com/checkout/cancel'
 
 
@@ -464,10 +464,11 @@ def create_checkout_session():
 @app.route('/checkout/success')
 def show_checkout_success():
     """Show success message and clear the session cart."""
-
+    session = stripe.checkout.Session.retrieve(request.args.get('session_id'))
+    customer = stripe.Customer.retrieve(session.customer)
     clear_session_cart()
   
-    return render_template("success.html")
+    return render_template("success.html", customer=customer)
 
 
 @app.route('/checkout/cancel')
