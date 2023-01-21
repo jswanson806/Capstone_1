@@ -477,35 +477,35 @@ def show_checkout_cancel():
     return render_template("cancel.html")
 
 
-@app.route('/webhook', methods=['POST'])
-def webhook():
-    event = None
-    payload = request.data
-    sig_header = request.headers['STRIPE_SIGNATURE']
+# @app.route('/webhook', methods=['POST'])
+# def webhook():
+#     event = None
+#     payload = request.data
+#     sig_header = request.headers['STRIPE_SIGNATURE']
 
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, endpoint_secret
-        )
-    except ValueError as e:
-        # Invalid payload
-        raise e
-    except stripe.error.SignatureVerificationError as e:
-        # Invalid signature
-        raise e
+#     try:
+#         event = stripe.Webhook.construct_event(
+#             payload, sig_header, endpoint_secret
+#         )
+#     except ValueError as e:
+#         # Invalid payload
+#         raise e
+#     except stripe.error.SignatureVerificationError as e:
+#         # Invalid signature
+#         raise e
 
-    # Handle the event
-    if event['type'] == 'payment_intent.succeeded':
-      session = event['data']
-      print('###################################')
-      print('###################################')
-      print('###################################')
-      print('session: ', session)
-    # ... handle other event types
-    else:
-      print('Unhandled event type {}'.format(event['type']))
+#     # Handle the event
+#     if event['type'] == 'payment_intent.succeeded':
+#       session = event['data']
+#       print('###################################')
+#       print('###################################')
+#       print('###################################')
+#       print('session: ', session)
+#     # ... handle other event types
+#     else:
+#       print('Unhandled event type {}'.format(event['type']))
 
-    return jsonify(success=True)
+#     return jsonify(success=True)
 
 #******************************************Comic Routes***************************************
 
