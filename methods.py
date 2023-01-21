@@ -3,7 +3,7 @@ import requests
 from models import db, Comic, Character
 from flask import session
 
-COMIC_API_KEY = os.environ.get('COMIC_API_KEY')
+COMIC_API_KEY = os.environ.get('COMIC_API_KEY','6097d6aeb080923e8927570f0ff9ac6f3292fe0a')
 
 # API URLs
 COMIC_BASE = 'https://comicvine.gamespot.com/api'
