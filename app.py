@@ -1,12 +1,18 @@
 
 import os
-from flask import Flask, render_template, request, flash, redirect, session, g
+import json
+
+import collections.abc
+from collections.abc import Container
+collections.Container = collections.abc.Container
+
+from flask import Flask, render_template, request, flash, redirect, session, g, jsonify
 from flask_mail import Mail, Message
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
-from models import db, connect_db, User, Character, Comic, Order, Order_Transaction
+from models import db, connect_db, User, Character, Comic, Order, Order_Item
 from forms import UserSignUpForm, EditUserForm, UserSignInForm
-from methods import search_characters, get_character_appearances, get_comic_issue
+from methods import search_characters, get_character_appearances, get_comic_issue, clear_session_cart
 from secret import STRIPE_TEST_API_KEY
 import stripe
 
@@ -15,7 +21,7 @@ stripe.api_key = STRIPE_TEST_API_KEY
 
 app = Flask(__name__)
 
-
+endpoint_secret = 'whsec_UczX2M1HRshzb5AzAVPqylWILqBH4Lq1'
 
 # Get DB_URI from environ variable (useful for production/testing) or,
 # if not set there, use development local db.
@@ -180,7 +186,7 @@ def show_user_profile(user_id):
 
 
 @app.route('/users/<int:user_id>/reading')
-def show_user_wishlist(user_id):
+def show_user_reading_list(user_id):
     """Show user reading list."""
 
     if g.user.id != user_id:
@@ -194,7 +200,7 @@ def show_user_wishlist(user_id):
 
 @app.route('/users/reading_list/<int:comic_id>', methods=["POST"])
 def add_reading_list_item(comic_id):
-    """Add item to user wishlist."""
+    """Add item to user reading list."""
 
     if not g.user:
         flash("Login to save comics", "danger")
@@ -211,7 +217,7 @@ def add_reading_list_item(comic_id):
 
 
 @app.route('/users/<int:comic_id>/remove_comic', methods=["POST"])
-def remove_wishlist_item(comic_id):
+def remove_reading_list_item(comic_id):
     """Remove comic from user reading list."""
 
     if not g.user:
@@ -397,11 +403,7 @@ def remove_cart_item(comic_id):
 @app.route("/cart/clear")
 def clear_cart_contents():
     # pop each item from the session cart until the session['cart'] length is 0
-    i = 0
-    while i < len(session['cart']):
-        session['cart'].pop(i)
-
-    session.modified = True
+    clear_session_cart()
 
     return redirect("/cart")
 
@@ -410,7 +412,10 @@ def clear_cart_contents():
 @app.route('/checkout/create-session', methods=["GET","POST"])
 def create_checkout_session():
     """Create checkout session"""
-    line_items_list = []
+    items_list = []
+    success_url = 'http://127.0.0.1:5000/checkout/success'
+    cancel_url = 'http://127.0.0.1:5000/checkout/cancel'
+
 
     for d in session['cart']:
         comic = Comic.query.get_or_404(d['id'])
@@ -427,34 +432,73 @@ def create_checkout_session():
         )
 
 
-        line_item={}
-        line_item["price"] = new_product["default_price"]["id"]
-        line_item["quantity"] = d[comic.name]
+        item={}
+        item["price"] = new_product["default_price"]["id"]
+        item["quantity"] = d[comic.name]
 
-        line_items_list.append(dict(line_item))
+        items_list.append(dict(item))
 
     try:
         checkout_session = stripe.checkout.Session.create(
-            line_items=line_items_list,
+            line_items=items_list,
             mode='payment',
-            success_url='http://127.0.0.1:5000/checkout/success',
-            cancel_url='http://127.0.0.1:5000/checkout/cancel',
+            success_url=success_url,
+            cancel_url=cancel_url,
         )
+     
+
     except Exception as e:
         return str(e)
-    print('#######################', 'checkout', checkout_session)
+
+    if g.user != None:
+        order = Order(session_id=checkout_session['id'])
+        db.session.add(order)
+        db.session.commit()
+
     return redirect(checkout_session.url, code=303)
     
 
 @app.route('/checkout/success')
 def show_checkout_success():
-    """Create checkout session"""
+    """Show success message and clear the session cart."""
+
+    clear_session_cart()
+  
     return render_template("success.html")
+
 
 @app.route('/checkout/cancel')
 def show_checkout_cancel():
     """Create checkout session"""
     return render_template("cancel.html")
+
+
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    event = None
+    payload = request.data
+    sig_header = request.headers['STRIPE_SIGNATURE']
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError as e:
+        # Invalid payload
+        raise e
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        raise e
+
+    # Handle the event
+    if event['type'] == 'checkout.session.completed':
+      session = event['data']['object']
+      print('###################################', 'session: ', session)
+    # ... handle other event types
+    else:
+      print('Unhandled event type {}'.format(event['type']))
+
+    return jsonify(success=True)
 
 #******************************************Comic Routes***************************************
 
