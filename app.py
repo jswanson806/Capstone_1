@@ -3,8 +3,9 @@ import os
 import json
 
 import collections.abc
-from collections.abc import Container
 collections.Container = collections.abc.Container
+collections.Iterable = collections.abc.Iterable
+collections.MutableSet = collections.abc.MutableSet
 
 from flask import Flask, render_template, request, flash, redirect, session, g, jsonify
 from flask_mail import Mail, Message
