@@ -416,8 +416,8 @@ def clear_cart_contents():
 def create_checkout_session():
     """Create checkout session"""
     items_list = []
-    success_url = 'http://127.0.0.1:5000/checkout/success'
-    cancel_url = 'http://127.0.0.1:5000/checkout/cancel'
+    success_url = 'https://fox-comics.herokuapp.com/checkout/success'
+    cancel_url = 'https://fox-comics.herokuapp.com/checkout/cancel'
 
 
     for d in session['cart']:
@@ -496,7 +496,10 @@ def webhook():
     # Handle the event
     if event['type'] == 'checkout.session.completed':
       session = event['data']['object']
-      print('###################################', 'session: ', session)
+      print('###################################')
+      print('###################################')
+      print('###################################')
+      print('session: ', session)
     # ... handle other event types
     else:
       print('Unhandled event type {}'.format(event['type']))
