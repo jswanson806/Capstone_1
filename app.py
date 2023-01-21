@@ -1,7 +1,6 @@
 
 import os
 import json
-import secret
 import collections.abc
 collections.Container = collections.abc.Container
 collections.Mapping = collections.abc.Mapping
@@ -17,11 +16,10 @@ from sqlalchemy.exc import IntegrityError
 from models import db, connect_db, User, Character, Comic, Order, Order_Item
 from forms import UserSignUpForm, EditUserForm, UserSignInForm
 from methods import search_characters, get_character_appearances, get_comic_issue, clear_session_cart
-from secret import STRIPE_TEST_API_KEY
 import stripe
 
 CURR_USER_KEY = "curr_user"
-stripe.api_key = STRIPE_TEST_API_KEY
+stripe.api_key = os.environ.get('STRIPE_TEST_API_KEY')
 
 app = Flask(__name__)
 
@@ -41,6 +39,7 @@ app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
+app.config['COMIC_API_KEY'] = os.environ.get('COMIC_API_KEY')
 toolbar = DebugToolbarExtension(app)
 
 connect_db(app)
