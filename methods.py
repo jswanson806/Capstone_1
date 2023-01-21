@@ -1,6 +1,9 @@
-from secret import COMIC_API_KEY
+import os
 import requests
 from models import db, Comic, Character
+from flask import session
+
+COMIC_API_KEY = os.environ.get('COMIC_API_KEY')
 
 # API URLs
 COMIC_BASE = 'https://comicvine.gamespot.com/api'
@@ -226,3 +229,12 @@ def search_characters(search_term):
             search_results.append(new_character)
 
     return search_results
+
+def clear_session_cart():
+    i = 0
+    while i < len(session['cart']):
+        session['cart'].pop(i)
+
+    session.modified = True
+    return None
+    
