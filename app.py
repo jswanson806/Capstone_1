@@ -495,7 +495,7 @@ def webhook():
 
     # Handle the event
     if event['type'] == 'payment_intent.succeeded':
-      session = event['data']['object']
+      session = event['data']
       print('###################################')
       print('###################################')
       print('###################################')
