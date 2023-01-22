@@ -342,9 +342,9 @@ def update_session_cart(comic_id):
     # if comic is in db, query the db and return comic
     # else query api and return comic instance
     comic = get_comic_issue(comic_id)
+
+    # add the comic to the db if it does not already exist, returns None
     add_comic_to_db(comic)
-    # query the comic from the db
-    # comic = Comic.query.get_or_404(comic_id)
 
     # check for the cart in the session
     if 'cart' in session:
@@ -367,6 +367,7 @@ def update_session_cart(comic_id):
     # cart was not in the session
     else:
         # create the session cart with the comic being added
+        # comic name is the key and the quantity in the cart is the value
         session['cart'] = [{'id': comic.id, comic.name: 1}]
         # update the session
         session.modified = True
