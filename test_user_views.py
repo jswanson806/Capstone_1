@@ -98,6 +98,34 @@ class UserViewTestCase(TestCase):
             self.assertEqual(len(reading), 1)
             
             self.assertEqual(reading[0].user_id, self.testuser.id)
+    
+    def show_reading_list(self):
+        """Do comics display on the reading list page?"""
+
+        self.setup_comics()
+
+        comic = Comic.query.get(8888)
+        self.assertIsNotNone(comic)
+        comic1 = Comic.query.get(9999)
+        self.assertIsNotNone(comic1)
+
+         # fake login
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+                
+            # post request for comic to add to reading list
+            resp = c.post('/users/reading_list/8888', follow_redirects=True)
+            self.assertEqual(resp.status_code, 200)
+
+            # post request to add another comic to reading list
+            resp1 = c.post('/users/reading_list/9999', follow_redirects=True)
+            self.assertEqual(resp1.status_code, 200)
+
+            resp2 = c.get(f'users/{self.testuser.id}/reading')
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("testcomic", str(resp2.data))
+            self.assertIn("testcomic1", str(resp2.data))
         
 
     def test_remove_from_reading_list(self):
@@ -168,6 +196,58 @@ class UserViewTestCase(TestCase):
             self.assertEqual(characters[0].user_id, self.testuser.id)
 
     def test_show_character_list(self):
-        """"""
+        """Do saved characters display on the characters page?"""
 
+        self.setup_characters()
+
+         # fake login
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+
+            # post request to add character to character list
+            resp = c.post('/users/characters/7777', follow_redirects=True)
+            self.assertEqual(resp.status_code, 200)
+            # post request to add another character to reading list
+            resp1 = c.post('/users/characters/6666', follow_redirects=True)
+            self.assertEqual(resp1.status_code, 200)
+            
+            # get request for the characters list page
+            resp2 = c.get(f'users/{self.testuser.id}/characters')
+            self.assertEqual(resp.status_code, 200)
+
+            # check for character names on the page
+            self.assertIn("testcharacter", str(resp2.data))
+            self.assertIn("testcharacter1", str(resp2.data))
+
+    def test_remove_from_character_list(self):
+        """Are comics being removed from the user's reading list?"""
+        
+        self.setup_characters()
+
+         # fake login
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+                
+            # post request to add character to character list
+            resp = c.post('/users/characters/7777', follow_redirects=True)
+            self.assertEqual(resp.status_code, 200)
+
+            # post request to add another character to character list
+            resp1 = c.post('/users/characters/6666', follow_redirects=True)
+            self.assertEqual(resp1.status_code, 200)
+
+            # check length of character list to be 2
+            characters = Character_List.query.all()
+            self.assertEqual(len(characters), 2)
+
+            # post request to remove the character from character list
+            resp2 = c.post(f'/users/7777/remove_character', follow_redirects=True)
+            self.assertEqual(resp2.status_code, 200)
+
+            # check length of character list to be 1
+            characters1 = Character_List.query.all()
+            self.assertEqual(len(characters1), 1)
+            
 # finish this test
