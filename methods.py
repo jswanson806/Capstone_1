@@ -16,19 +16,19 @@ COMIC_ISSUE = 'https://comicvine.gamespot.com/api/issue/4000-'
 #*****************************API Methods******************************
 
 
-def get_comic_issue(issue_id):
+def get_comic_issue(comic_id):
 
     # check for comic issue in SQL db
-    exists = db.session.query(db.exists().where(Comic.id == issue_id)).scalar()
+    exists = db.session.query(db.exists().where(Comic.id == comic_id)).scalar()
     
     if exists:
         # query SQL db comic
-        comic = Comic.query.get(issue_id)  
+        comic = Comic.query.get(comic_id)  
         return comic
     
     else:
         key = COMIC_API_KEY
-        url = COMIC_ISSUE + f'{issue_id}'
+        url = COMIC_ISSUE + f'{comic_id}'
 
         params = {"api_key":key, 
                   "field_list":"id,name,deck,cover_date,issue_number,image,first_appearance_characters,character_credits",
@@ -52,10 +52,25 @@ def get_comic_issue(issue_id):
                         deck = data['results']['deck']
                         )
 
-        db.session.add(new_comic)
+        return new_comic
+
+
+def add_comic_to_db(comic):
+
+    # check for comic issue in SQL db
+    exists = db.session.query(db.exists().where(Comic.id == comic.id)).scalar()
+    
+    # comic exists in db, return None
+    if exists:
+        return None
+
+    # comic is not in the db, add and commit, return None
+    else:
+        db.session.add(comic)
         db.session.commit()
 
-        return new_comic
+        return None
+
 
 
 def get_character_appearances(character_id):

@@ -1,6 +1,5 @@
 
 import os
-import json
 import collections.abc
 collections.Container = collections.abc.Container
 collections.Mapping = collections.abc.Mapping
@@ -9,13 +8,13 @@ collections.Iterable = collections.abc.Iterable
 collections.MutableSet = collections.abc.MutableSet
 collections.Callable = collections.abc.Callable
 
-from flask import Flask, render_template, request, flash, redirect, session, g, jsonify
+from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_mail import Mail, Message
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
-from models import db, connect_db, User, Character, Comic, Order, Order_Item
+from models import db, connect_db, User, Character, Comic, Order
 from forms import UserSignUpForm, EditUserForm, UserSignInForm
-from methods import search_characters, get_character_appearances, get_comic_issue, clear_session_cart
+from methods import search_characters, add_comic_to_db, get_character_appearances, get_comic_issue, clear_session_cart
 import stripe
 
 CURR_USER_KEY = "curr_user"
@@ -31,7 +30,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = (
     os.environ.get('DATABASE_URL', 'postgresql:///comicbook_store'))
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = False
-app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "it's a secret")
 app.config['MAIL_SERVER']='smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
@@ -316,16 +315,22 @@ def show_session_cart():
 
     if 'cart' in session:
 
+
         for item in session['cart']:
-            # get the comic from the database
-            comic = Comic.query.get_or_404(item['id'])
-            # coerce the item quantity and comic price to float -> multiply them by one another 
-            # -> round the result to 2 decimals
-            item_subtotal = round(float(item[comic.name]) * float(comic.price), 2)
-            # append the comic to the cart_contents list
-            cart_contents.append((comic, int(item[comic.name]), item_subtotal))
-            # update the subtotal with the price of each comic in the session cart
-            subtotal = round(subtotal + item_subtotal, 2)
+            print('###########', 'cart_found')
+    #         # get the comic from the database
+            comic = Comic.query.get(item['id'])
+    #         # coerce the item quantity and comic price to float -> multiply them by one another 
+    #         # -> round the result to 2 decimals
+            if comic:
+                print(session['cart'])
+                # print('###############', item[comic.name])
+                # print('###############', comic.price)
+                item_subtotal = round(float(item[comic.name]) * float(comic.price), 2)
+    #             # append the comic to the cart_contents list
+                cart_contents.append((comic, int(item[comic.name]), item_subtotal))
+    #             # update the subtotal with the price of each comic in the session cart
+                subtotal = round(subtotal + item_subtotal, 2)
 
     return render_template('cart.html', cart_contents=cart_contents, subtotal=subtotal)
 
@@ -334,7 +339,12 @@ def show_session_cart():
 def update_session_cart(comic_id):
     """Add item to cart in session."""
    
-    comic = Comic.query.get_or_404(comic_id)
+    # if comic is in db, query the db and return comic
+    # else query api and return comic instance
+    comic = get_comic_issue(comic_id)
+    add_comic_to_db(comic)
+    # query the comic from the db
+    # comic = Comic.query.get_or_404(comic_id)
 
     # check for the cart in the session
     if 'cart' in session:
@@ -345,7 +355,7 @@ def update_session_cart(comic_id):
             session['cart'].append({'id': comic.id, comic.name: 1})
             # update the session
             session.modified = True
-            print('########################', 'IF')
+
         # item was in the session cart, update the quantity
         elif any(comic.name in d for d in session['cart']):
             for d in session['cart']:
@@ -353,14 +363,14 @@ def update_session_cart(comic_id):
                 d.update((k, v+1) for k, v in d.items() if k == comic.name)
             # update the session
             session.modified = True
-            print('########################', 'ELIF')
+
     # cart was not in the session
     else:
         # create the session cart with the comic being added
         session['cart'] = [{'id': comic.id, comic.name: 1}]
         # update the session
         session.modified = True
-        print('########################', 'ELSE')
+
     # stay on the comic details page
     return redirect('/cart')
 
@@ -416,8 +426,8 @@ def clear_cart_contents():
 def create_checkout_session():
     """Create checkout session"""
     items_list = []
-    success_url = 'https://fox-comics.herokuapp.com/checkout/success?session_id={CHECKOUT_SESSION_ID}'
-    cancel_url = 'https://fox-comics.herokuapp.com/checkout/cancel'
+    success_url = 'https://127.0.0.1:5000/checkout/success?session_id={CHECKOUT_SESSION_ID}'
+    cancel_url = 'https://127.0.0.1:5000/checkout/cancel'
 
 
     for d in session['cart']:
@@ -453,10 +463,6 @@ def create_checkout_session():
     except Exception as e:
         return str(e)
 
-    if g.user != None:
-        order = Order(session_id=checkout_session['id'])
-        db.session.add(order)
-        db.session.commit()
 
     return redirect(checkout_session.url, code=303)
     
@@ -465,10 +471,21 @@ def create_checkout_session():
 def show_checkout_success():
     """Show success message and clear the session cart."""
     session = stripe.checkout.Session.retrieve(request.args.get('session_id'))
-    customer = stripe.Customer.retrieve(session.customer)
+    # get the session information for the customer
+    if g.user != None:
+        order = Order(session_id=session['data']['id'],
+                      sub_total=session['data']['amount_subtotal'],
+                      total=session['data']['amount_total'],
+                      customer_name=session['data']['customer_details']['name'],
+                      phone=session['data']['customer_details']['phone'],
+                      email=session['data']['customer_details']['email'],
+                      )
+        db.session.add(order)
+        db.session.commit()
+ 
     clear_session_cart()
   
-    return render_template("success.html", customer=customer)
+    return render_template("success.html")
 
 
 @app.route('/checkout/cancel')
@@ -476,36 +493,6 @@ def show_checkout_cancel():
     """Create checkout session"""
     return render_template("cancel.html")
 
-
-# @app.route('/webhook', methods=['POST'])
-# def webhook():
-#     event = None
-#     payload = request.data
-#     sig_header = request.headers['STRIPE_SIGNATURE']
-
-#     try:
-#         event = stripe.Webhook.construct_event(
-#             payload, sig_header, endpoint_secret
-#         )
-#     except ValueError as e:
-#         # Invalid payload
-#         raise e
-#     except stripe.error.SignatureVerificationError as e:
-#         # Invalid signature
-#         raise e
-
-#     # Handle the event
-#     if event['type'] == 'payment_intent.succeeded':
-#       session = event['data']
-#       print('###################################')
-#       print('###################################')
-#       print('###################################')
-#       print('session: ', session)
-#     # ... handle other event types
-#     else:
-#       print('Unhandled event type {}'.format(event['type']))
-
-#     return jsonify(success=True)
 
 #******************************************Comic Routes***************************************
 
@@ -515,22 +502,3 @@ def show_comic_details(comic_id):
     comic = get_comic_issue(comic_id)
 
     return render_template('comic-details.html', comic=comic)
-
-#******************************************Review Routes***************************************
-
-@app.route('/comic/review/add', methods=["GET", "POST"])
-def add_review(comic_id):
-    """Add review to comic issue.
-    
-    Show form if GET. If valid, update review -> redirect to comic details page.
-    """
-
-    return redirect(f'/comic/{comic_id}')
-
-
-@app.route('/comic/review/<int:review_id>/remove', methods=["POST"])
-def remove_review(review_id):
-    """Remove review from comic issue."""
-
-    return redirect(f'/comic/{review_id}')
-
