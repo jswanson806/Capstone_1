@@ -17,7 +17,13 @@ COMIC_ISSUE = 'https://comicvine.gamespot.com/api/issue/4000-'
 
 
 def get_comic_issue(comic_id):
-
+    """
+    >>> If comic exists in db, query the db
+    >>> returns comic object
+    >>>
+    >>> Else query the comic API and create a new instance of Comic
+    >>> returns comic object
+    """
     # check for comic issue in SQL db
     exists = db.session.query(db.exists().where(Comic.id == comic_id)).scalar()
     
@@ -39,8 +45,18 @@ def get_comic_issue(comic_id):
                   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
                   "Content-Type": "application/json"
                   }
-
-        res = requests.get(url, headers=headers, params=params)
+        try:
+            res = requests.get(url, headers=headers, params=params)
+            res.raise_for_status()
+        except requests.exceptions.HTTPError as errh:
+            return "An Http Error occurred:" + repr(errh)
+        except requests.exceptions.ConnectionError as errc:
+            return "An Error Connecting to the API occurred:" + repr(errc)
+        except requests.exceptions.Timeout as errt:
+            return "A Timeout Error occurred:" + repr(errt)
+        except requests.exceptions.RequestException as err:
+            return "An Unknown Error occurred" + repr(err)
+        
 
         data = res.json()
 
@@ -56,6 +72,9 @@ def get_comic_issue(comic_id):
 
 
 def add_comic_to_db(comic):
+    """Add the comic to the db if it does not already exist
+    >>> returns None
+    """
 
     # check for comic issue in SQL db
     exists = db.session.query(db.exists().where(Comic.id == comic.id)).scalar()
@@ -74,6 +93,22 @@ def add_comic_to_db(comic):
 
 
 def get_character_appearances(character_id):
+    """
+    >>> Query the API for the comic character ->
+    >>> Extract character appearances (comics) from response data ->
+    >>> Filter out titles that are not full titles ->
+    >>> Append the character appearances to an appearances list ->
+    >>> Returns list containing dictionaries of comics as: 
+    >>> appearances [
+    >>>         {
+    >>>         'id': id, 
+    >>>         'name': name
+    >>>         }
+    >>>     ]
+    """
+    # title names to ignore
+    forbidden_names = ['TPB','HC','HC/TPB', 'TPB/HC', 'HC\TPB', 'TPB\HC', 'Chapter','Volume', '', 'SC']
+    
     key = COMIC_API_KEY
     url = COMIC_CHARACTER + f'{character_id}'
     appearances = []
@@ -89,17 +124,28 @@ def get_character_appearances(character_id):
     "Content-Type": "application/json"
     }
 
-    res = requests.get(url, headers=headers, params=params)
+    try:
+        res = requests.get(url, headers=headers, params=params)
+        res.raise_for_status()
+    except requests.exceptions.HTTPError as errh:
+        return "An Http Error occurred:" + repr(errh)
+    except requests.exceptions.ConnectionError as errc:
+        return "An Error Connecting to the API occurred:" + repr(errc)
+    except requests.exceptions.Timeout as errt:
+        return "A Timeout Error occurred:" + repr(errt)
+    except requests.exceptions.RequestException as err:
+        return "An Unknown Error occurred" + repr(err)
+    
 
     data = res.json()
     
     issue_credits = data['results']['issue_credits']
 
-    # filter out issue titles that are not real titles
-    forbidden_names = ['TPB','HC','HC/TPB', 'TPB/HC', 'HC\TPB', 'TPB\HC', 'Chapter','Volume', '', 'SC']
+    
 
-    # additional filters for issue titles that are not full title names during loop
+    # loop over all of the issues in response data
     for i in issue_credits:
+        # additional title filters within the loop for titles that start with forbidden names
         if i['name'] not in forbidden_names and i['name'] != None and not i['name'].startswith(('Volume', 'Chapter', 'Book', 'Part', 'Vol.')):
             id = i['id']
             name = i['name']
