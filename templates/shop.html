@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Shop</title>
+    <title>{% block title %}Shop{% endblock %}</title>
     <meta name="robots" content="noindex, follow" />
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -45,7 +45,6 @@
                     <div class="col-lg-6 col-sm-6 col-12">
                         <div class="header-top-link">
                             <ul class="quick-link">
-                                <li><a href="#">Help</a></li>
                                 {% if not g.user %}
                                     <li><a href="/signup">Join Us</a></li>
                                     <li><a href="/signin">Sign In</a></li>
