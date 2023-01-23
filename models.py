@@ -41,7 +41,7 @@ class Comic(db.Model):
     issue_number = db.Column(db.Text, default='N/A')
     cover_date = db.Column(db.Date, nullable=True)
     deck = db.Column(db.Text, default='Unavailable')
-    price = db.Column(db.Text, default="4.99")
+    price = db.Column(db.Text, nullable=False, default="4.99")
     cover_img = db.Column(db.Text, default="/static/missing_cover_art.png")
 
     appear_assignments = db.relationship('Character_Appearance', backref='comics', cascade="all, delete-orphan")
@@ -78,7 +78,7 @@ class Order(db.Model):
     __tablename__ = "orders"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
-    session_id = db.Column(db.Integer, unique=True, nullable=False)
+    session_id = db.Column(db.Text, unique=True, nullable=False)
     order_status = db.Column(db.Text, nullable=True, default="processing")
     sub_total = db.Column(db.Text, nullable=True)
     tax = db.Column(db.Text, nullable=True)
@@ -96,18 +96,13 @@ class Order(db.Model):
     updated = db.Column(db.DateTime, nullable=True)
     notes = db.Column(db.Text, nullable=True)
 
-    user_id = db.Column(db.Integer, 
-                        db.ForeignKey('users.id'), 
-                        primary_key=True
-                        )
     items = db.relationship("Comic", 
                             secondary="order_items", 
                             backref="orders"
                             )
                     
-    
     item_assignments = db.relationship("Order_Item", backref="orders", cascade="all, delete-orphan")
-    transaction_assignments = db.relationship("Order_Transaction", backref="orders", cascade="all, delete-orphan")
+    transaction_assignments = db.relationship("User_Orders", backref="orders", cascade="all, delete-orphan")
 
 
 # *************************************Through Tables************************************
@@ -142,7 +137,6 @@ class Reading_List(db.Model):
     comic_id = db.Column(db.Integer,
                         db.ForeignKey('comics.id', ondelete="cascade")
                         )
-    read = db.Column(db.Boolean, default=False)
 
 
 class Order_Item(db.Model):
@@ -162,18 +156,12 @@ class Order_Item(db.Model):
                         )
 
 
-class Order_Transaction(db.Model):
+class User_Orders(db.Model):
     """Transaction model."""
 
-    __tablename__ = "transactions"
+    __tablename__ = "user_orders"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
-    order_number = db.Column(db.Text, unique=True, nullable=False)
-    type = db.Column(db.Text, nullable=False)
-    payment_status = db.Column(db.Text, nullable=False, default="processing")
-    created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
-    notes = db.Column(db.Text, nullable=True)
 
     user_id = db.Column(db.Integer, 
                         db.ForeignKey('users.id', ondelete="cascade"), 
@@ -209,10 +197,10 @@ class User(db.Model):
                             )
 
     orders = db.relationship("Order",
-                            secondary="transactions",
+                            secondary="user_orders",
                             backref="users"
                             )
-    assigned_transactions = db.relationship("Order_Transaction", backref="users", cascade="all, delete-orphan")
+    assigned_transactions = db.relationship("User_Orders", backref="users", cascade="all, delete-orphan")
 
     assigned_reading = db.relationship("Reading_List", backref="users", cascade="all, delete-orphan")
 
