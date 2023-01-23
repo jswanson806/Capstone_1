@@ -1,0 +1,43 @@
+{% extends 'shop.html' %}
+{% block title %}Reading List{% endblock %}
+{% block content %}
+        <!-- Start Wishlist Area  -->
+        <div class="axil-wishlist-area axil-section-gap">
+            <div class="container">
+                <div class="product-table-heading">
+                    <h4 class="title">Order History</h4>
+                </div>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Order #</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th scope="row">{{ order.id }}</th>
+                                <td>{{ order.created }}</td>
+                                <td>{{ order.order_status }}</td>
+                                <td>{{ order.total }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="col">Items in This Order</th>
+                            </tr>
+                            {% for item in order_items %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+            </div>
+        </div>
+        <!-- End Wishlist Area  -->
+{% endblock %}
