@@ -8,14 +8,15 @@ collections.Iterable = collections.abc.Iterable
 collections.MutableSet = collections.abc.MutableSet
 collections.Callable = collections.abc.Callable
 
-from flask import Flask, render_template, request, flash, redirect, session, g
+from flask import Flask, render_template, request, flash, redirect, session, g, abort
 from flask_mail import Mail, Message
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from models import db, connect_db, User, Character, Comic, Order
 from forms import UserSignUpForm, EditUserForm, UserSignInForm
-from methods import search_characters, add_comic_to_db, get_character_appearances, get_comic_issue, clear_session_cart
+from methods import search_characters, find_single_character, add_comic_to_db, get_comic_issue, clear_session_cart
 import stripe
+
 
 CURR_USER_KEY = "curr_user"
 stripe.api_key = os.environ.get('STRIPE_TEST_API_KEY', 'sk_test_51MNeg0DugXxFxym6nqUpiTKKtRpdLwRjM4Hix8NKPObBVtDYIVuW8FxTbLipSvxvt4Oj45yjeUe2iFUTTLVrdadF00KclEHSAC')
@@ -45,7 +46,16 @@ connect_db(app)
 
 mail = Mail(app)
 
+#************************Error Handlers*****************************
 
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return render_template('500.html'), 500
 
 #***************Homepage | Sign-in | Sign-up | Logout****************
 
@@ -107,11 +117,12 @@ def sign_up_page():
             flash("Username or Email is taken", 'danger')
             return render_template('sign-up.html', form=form)
 
+        # send welcome email
         msg = Message('Welcome to Fox Comics!', sender = 'foxcomicsllc@gmail.com', recipients = [form.email.data])
         msg.html = render_template("welcome-email.html")
         mail.send(msg)
-        print('####################', 'Sent!', msg)
 
+        # log the new user in
         login(user)
 
         return redirect('/')
@@ -140,6 +151,7 @@ def sign_in_page():
 
         # if user auth fails -> flash invalid msg
         flash("Invalid information.", "danger")
+        return redirect('/signin')
 
     # if form validation fails, rerender the form
     return render_template('sign-in.html', form=form)
@@ -183,8 +195,9 @@ def show_user_profile(user_id):
                 # flash msg if authentication fails
                 flash('Incorrect password')
                 return redirect('/')
+    orders = user.orders
 
-    return render_template('my-account.html', form=form)
+    return render_template('my-account.html', form=form, orders=orders)
 
 
 @app.route('/users/<int:user_id>/reading')
@@ -256,16 +269,58 @@ def add_character(character_id):
     if not g.user:
         flash("Login to save characters.", "danger")
         return redirect('/signin')
-    # get the character from the db
-    character = Character.query.get_or_404(character_id)
-    # get the user from the db
-    user = User.query.get_or_404(g.user.id)
-    # append the character to user.characters
-    user.characters.append(character)
 
-    db.session.commit()
+    else:
+        # check for character in SQL db
+        exists = db.session.query(db.exists().where(Character.id == character_id)).scalar()
 
-    return redirect(f'/characters/{character_id}')
+        # if character is already present in SQL db, query the character
+        if exists:
+            # get the character from the db
+            character = Character.query.get(character_id)
+            # get the user from the db
+            user = User.query.get_or_404(g.user.id)
+            # append the character to user.characters
+            user.characters.append(character)
+            return redirect(f'/characters/{character_id}')
+        
+        # character does not exist in db, query api
+        else:
+            # query api for single character and return json response data
+            data = find_single_character(character_id)
+
+            # shorthand variable for data results
+            results = data['results']
+
+            character = Character(id=results['id'],
+                                  name=results['name'], 
+                                  real_name=results['real_name'], 
+                                  deck=results['deck'], 
+                                  first_appear_issue_id=results['first_appeared_in_issue']['id'],
+                                  first_appear_issue_name=results['first_appeared_in_issue']['name'],
+                                  first_appear_issue_num=results['first_appeared_in_issue']['issue_number'],                 
+                                  total_appearances=results['count_of_issue_appearances'], 
+                                  icon_image_url=results['image']['icon_url'],
+                                  original_url=results['image']['original_url'],
+                                  publisher_id=results['publisher']['id'],
+                                  publisher_name=results['publisher']['name']
+                                  )
+    
+            # add character and commit to db
+            db.session.add(character)
+            db.session.commit()
+
+            # get the character from the db
+            character = Character.query.get(character_id)
+            # get the user from the db
+            user = User.query.get_or_404(g.user.id)
+
+            # append the character to user.characters
+            user.characters.append(character)
+            # commit changes to user in db
+            db.session.commit()
+
+            return redirect(f'/characters/{character_id}')
     
 
 @app.route('/users/<int:character_id>/remove_character', methods=["POST"])
@@ -294,16 +349,75 @@ def find_characters():
     
     return render_template('characters-search.html', characters=search_res)
 
+
 @app.route('/characters/<int:character_id>')
 def show_character_details(character_id):
-    """Show single character details page."""
+    """ 
+    Show single character details page.
+    >>> Extract character appearances (comics) from response data ->
+    >>> Filter out titles that are not full titles ->
+    >>> Append the character appearances to an appearances list as:
+    >>> appearances [
+    >>>         {
+    >>>         'id': id, 
+    >>>         'name': name
+    >>>         }
+    >>>     ]
+    >>> Check for the character in the db ->
+    >>> Else, create new instance -> save to db
+    >>> 
+    >>> Pass character instance and appearances list to route.
+    """
+    # list to hold character appearances
+    appearances = []
+
+    # title names to ignore
+    forbidden_names = ['TPB','HC','HC/TPB', 'TPB/HC', 'HC\TPB', 'TPB\HC', 'Chapter','Volume', '', 'SC']
+
+    # query api for single character and return json response data
+    data = find_single_character(character_id)
+
+    # shorthand variable for data results
+    results = data['results']
+
+    # shorthand variable for dictionary of comics where character appears
+    comic_credits = results['issue_credits']
     
-    character = Character.query.get(character_id)
-    if character:
-        appearances = get_character_appearances(character_id)
+    # loop over all of the comics in response data
+    for i in comic_credits:
+        # additional title filters within the loop for titles that start with forbidden names
+        if i['name'] not in forbidden_names and i['name'] != None and not i['name'].startswith(('Volume', 'Chapter', 'Book', 'Part', 'Vol.')):
+            id = i['id']
+            name = i['name']
+            comic = {'id': id, 'name': name}
+            # append issues to appearances list
+            appearances.append(comic)
+
+    # check for character in SQL db
+    exists = db.session.query(db.exists().where(Character.id == id)).scalar()
+
+    # if character is already present in SQL db, query the character
+    if exists:
+        character = Character.query.get(id)
         return render_template('character-details.html', character=character, appearances=appearances)
+    # character does not exist, create new instance
     else:
-        return redirect('/')
+        character = Character(id=results['id'],
+                              name=results['name'], 
+                              real_name=results['real_name'], 
+                              deck=results['deck'], 
+                              first_appear_issue_id=results['first_appeared_in_issue']['id'],
+                              first_appear_issue_name=results['first_appeared_in_issue']['name'],
+                              first_appear_issue_num=results['first_appeared_in_issue']['issue_number'],                 
+                              total_appearances=results['count_of_issue_appearances'], 
+                              icon_image_url=results['image']['icon_url'],
+                              original_url=results['image']['original_url'],
+                              publisher_id=results['publisher']['id'],
+                              publisher_name=results['publisher']['name']
+                              )
+
+        return render_template('character-details.html', character=character, appearances=appearances)
+
 
 #***************************************Cart Routes***************************************
 
@@ -315,28 +429,26 @@ def show_session_cart():
 
     if 'cart' in session:
 
-
         for item in session['cart']:
-            print('###########', 'cart_found')
-    #         # get the comic from the database
+            # get the comic from the database
             comic = Comic.query.get(item['id'])
-    #         # coerce the item quantity and comic price to float -> multiply them by one another 
-    #         # -> round the result to 2 decimals
+            
+            # ignore None Type objects
             if comic:
-                print(session['cart'])
-                # print('###############', item[comic.name])
-                # print('###############', comic.price)
+                # calculate the subtotal of the item -> comic.name is key, value is the quantity ->
+                # coerce the item quantity and comic price to float ->
+                # round the result to 2 decimals
                 item_subtotal = round(float(item[comic.name]) * float(comic.price), 2)
-    #             # append the comic to the cart_contents list
+                # append the comic to the cart_contents list
                 cart_contents.append((comic, int(item[comic.name]), item_subtotal))
-    #             # update the subtotal with the price of each comic in the session cart
+                # update the subtotal with the price of all comics in the session cart
                 subtotal = round(subtotal + item_subtotal, 2)
 
     return render_template('cart.html', cart_contents=cart_contents, subtotal=subtotal)
 
 
 @app.route('/cart/<int:comic_id>/add', methods=["POST"])
-def update_session_cart(comic_id):
+def add_item_to_session_cart(comic_id):
     """Add item to cart in session."""
    
     # if comic is in db, query the db and return comic
@@ -392,7 +504,7 @@ def edit_cart_contents():
         # iterate over cart in session
         for d in session['cart']:
             # get the comic from the db
-            comic = Comic.query.get_or_404(d['id'])
+            comic = Comic.query.get(d['id'])
             # update the item quantity value if the key matches the comic.name
             d.update((k, quantities[str(d['id'])]) for k, v in d.items() if k == comic.name)
         # update the session
@@ -427,13 +539,13 @@ def clear_cart_contents():
 def create_checkout_session():
     """Create checkout session"""
     items_list = []
-    success_url = 'https://127.0.0.1:5000/checkout/success?session_id={CHECKOUT_SESSION_ID}'
-    cancel_url = 'https://127.0.0.1:5000/checkout/cancel'
+    success_url = 'http://127.0.0.1:5000/checkout/success?session_id={CHECKOUT_SESSION_ID}'
+    cancel_url = 'http://127.0.0.1:5000/checkout/cancel'
 
 
     for d in session['cart']:
-        comic = Comic.query.get_or_404(d['id'])
-        
+
+        comic = Comic.query.get(d['id'])
 
         new_product = stripe.Product.create(
             name=comic.name,
@@ -471,27 +583,67 @@ def create_checkout_session():
 @app.route('/checkout/success')
 def show_checkout_success():
     """Show success message and clear the session cart."""
-    session = stripe.checkout.Session.retrieve(request.args.get('session_id'))
-    # get the session information for the customer
-    if g.user != None:
-        order = Order(session_id=session['data']['id'],
-                      sub_total=session['data']['amount_subtotal'],
-                      total=session['data']['amount_total'],
-                      customer_name=session['data']['customer_details']['name'],
-                      phone=session['data']['customer_details']['phone'],
-                      email=session['data']['customer_details']['email'],
-                      )
-        db.session.add(order)
+
+    # grab the session id from the url
+    args = request.args.get('session_id')
+    # get the stripe checkout session object
+    checkout_session = stripe.checkout.Session.retrieve(args)
+
+    # total from stripe api is str ->
+    # coerce api total to float -> divide by 100 to format as curreny amount with 2 decimal places ->
+    # coerce back to str to add to db column 'total'
+    checkout_total = str(float(checkout_session['amount_total']/100))
+    
+    # create a new order instance
+    new_order = Order(session_id=checkout_session['id'],
+                  sub_total=checkout_session['amount_subtotal'],
+                  total=checkout_total,
+                  customer_name=checkout_session['customer_details']['name'],
+                  phone=checkout_session['customer_details']['phone'],
+                  email=checkout_session['customer_details']['email']
+                  )
+
+    # add and commit the new order to db
+    db.session.add(new_order)
+    db.session.commit()
+
+    # query the order from the db
+    order = Order.query.get(new_order.id)
+    
+    # loop over items in session cart
+    for d in session['cart']:
+        # query the comic
+        comic = Comic.query.get(d['id'])
+        # append the comic to order.itmes list
+        order.items.append(comic)
+
+    # commit to db
+    db.session.commit()
+
+    # check for logged in user
+    if g.user:
+        # query the user from the db
+        user = User.query.get(g.user.id)
+        # append the order to the user.orders list
+        user.orders.append(order)
+        # commit to db
         db.session.commit()
- 
-    clear_session_cart()
-  
-    return render_template("success.html")
+
+        # clear the session cart
+        clear_session_cart()
+
+        return render_template("success.html", user=user)
+
+    else:
+        # clear the session cart
+        clear_session_cart()
+
+        return render_template("success.html")
 
 
 @app.route('/checkout/cancel')
 def show_checkout_cancel():
-    """Create checkout session"""
+    """Show cancel checkout page"""
     return render_template("cancel.html")
 
 
@@ -503,3 +655,12 @@ def show_comic_details(comic_id):
     comic = get_comic_issue(comic_id)
 
     return render_template('comic-details.html', comic=comic)
+
+@app.route("/user/order/<int:order_id>")
+def show_order_details(order_id):
+    """Show order details page."""
+
+    order = Order.query.get(order_id)
+    order_items = order.items
+
+    return render_template("order-details.html", order=order, order_items=order_items)
