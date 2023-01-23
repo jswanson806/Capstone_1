@@ -65,7 +65,8 @@ def get_comic_issue(comic_id):
                         issue_number = data['results']['issue_number'],
                         cover_date = data['results']['cover_date'],
                         cover_img = data['results']['image']['original_url'],
-                        deck = data['results']['deck']
+                        deck = data['results']['deck'],
+                        price = '4.99'
                         )
 
         return new_comic
@@ -91,31 +92,18 @@ def add_comic_to_db(comic):
         return None
 
 
-
-def get_character_appearances(character_id):
+def find_single_character(character_id):
     """
-    >>> Query the API for the comic character ->
-    >>> Extract character appearances (comics) from response data ->
-    >>> Filter out titles that are not full titles ->
-    >>> Append the character appearances to an appearances list ->
-    >>> Returns list containing dictionaries of comics as: 
-    >>> appearances [
-    >>>         {
-    >>>         'id': id, 
-    >>>         'name': name
-    >>>         }
-    >>>     ]
-    """
-    # title names to ignore
-    forbidden_names = ['TPB','HC','HC/TPB', 'TPB/HC', 'HC\TPB', 'TPB\HC', 'Chapter','Volume', '', 'SC']
+    >>> Query the API for the comic character
+    >>> returns json response data
     
+    """
+
     key = COMIC_API_KEY
     url = COMIC_CHARACTER + f'{character_id}'
-    appearances = []
-
 
     params = {"api_key":key, 
-              "field_list":"issue_credits",
+              "field_list":"id,name,real_name,aliases,deck,first_appeared_in_issue,count_of_issue_appearances,image,api_detail_url,publisher,issue_credits",
               "format":"json"
             }
 
@@ -136,41 +124,21 @@ def get_character_appearances(character_id):
     except requests.exceptions.RequestException as err:
         return "An Unknown Error occurred" + repr(err)
     
-
     data = res.json()
     
-    issue_credits = data['results']['issue_credits']
+    return data
 
-    
-
-    # loop over all of the issues in response data
-    for i in issue_credits:
-        # additional title filters within the loop for titles that start with forbidden names
-        if i['name'] not in forbidden_names and i['name'] != None and not i['name'].startswith(('Volume', 'Chapter', 'Book', 'Part', 'Vol.')):
-            id = i['id']
-            name = i['name']
-            issue = {'id': id, 'name': name}
-            appearances.append(issue)
-    
-    return appearances
 
 def search_characters(search_term):
     """
     Returns characters with similar names to the search_term.
 
-    Limits calls to the API:
-    If characters do not exist in the SQL db already ->
-    call the API and generate new character instances from the returned data ->
-    Add the characters to the SQL db and return the list of character SQLAlchemy objects
     """
 
-    
-
-    # if no matching characters are found in SQL db, query the API
+    # query the API
     # -> iterate over response data and add characters to the database
     # -> return the list of characters from the API
 
-    
 
     key = COMIC_API_KEY
     url = COMIC_CHARACTERS      
@@ -203,7 +171,7 @@ def search_characters(search_term):
     results_count = data['number_of_page_results']
     # iterate over data and extract character information
 
-    
+    # handle possible NoneType from response data
     for i in range (0,results_count):
         result = data['results'][i]
 
@@ -250,24 +218,19 @@ def search_characters(search_term):
         else:
             original_url = None
 
-        if result['publisher']['id'] != None:
-            publisher_id = result['publisher']['id']
-        else:
-            publisher_id = None
+        if result['publisher'] != None:
 
-        if result['publisher']['name'] != None:
-            publisher_name = result['publisher']['name']
-        else:
-            publisher_name = None
+            if result['publisher']['id'] != None:
+                publisher_id = result['publisher']['id']
+            else:
+                publisher_id = None
 
-        # check for character in SQL db
-        exists = db.session.query(db.exists().where(Character.id == id)).scalar()
-        # if character is already present in SQL db, query the characters and append them to search_results
-        if exists:
-            character = Character.query.get(id)
-            search_results.append(character)
-        
-        else:
+            if result['publisher']['name'] != None:
+                publisher_name = result['publisher']['name']
+            else:
+                publisher_name = None
+
+
             # if the character is not in the db already -> create new character instance
             new_character = Character(id=id,
                                 name=name, 
@@ -282,14 +245,12 @@ def search_characters(search_term):
                                 publisher_id=publisher_id,
                                 publisher_name=publisher_name
                                 )
-            # add and commit new character instance to the SQL db                    
-            db.session.add(new_character)
-            db.session.commit()
 
             # append character SQLAlchemy object to the search_results list
             search_results.append(new_character)
 
     return search_results
+
 
 def clear_session_cart():
     i = 0
