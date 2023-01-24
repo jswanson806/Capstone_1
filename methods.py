@@ -24,72 +24,53 @@ def get_comic_issue(comic_id):
     >>> Else query the comic API and create a new instance of Comic
     >>> returns comic object
     """
-    # check for comic issue in SQL db
-    exists = db.session.query(db.exists().where(Comic.id == comic_id)).scalar()
+
+    key = COMIC_API_KEY
+    url = COMIC_ISSUE + f'{comic_id}'
+    params = {"api_key":key, 
+              "field_list":"id,name,deck,cover_date,issue_number,image,first_appearance_characters,character_credits",
+              "format":"json"
+             }
+    headers = {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+              "Content-Type": "application/json"
+              }
+    try:
+        res = requests.get(url, headers=headers, params=params)
+        res.raise_for_status()
+    except requests.exceptions.HTTPError as errh:
+        return "An Http Error occurred:" + repr(errh)
+    except requests.exceptions.ConnectionError as errc:
+        return "An Error Connecting to the API occurred:" + repr(errc)
+    except requests.exceptions.Timeout as errt:
+        return "A Timeout Error occurred:" + repr(errt)
+    except requests.exceptions.RequestException as err:
+        return "An Unknown Error occurred" + repr(err)
     
-    if exists:
-        # query SQL db comic
-        comic = Comic.query.get(comic_id)  
-        return comic
-    
-    else:
-        key = COMIC_API_KEY
-        url = COMIC_ISSUE + f'{comic_id}'
+    data = res.json()
+    new_comic = Comic(id = data['results']['id'],
+                    name = data['results']['name'],
+                    issue_number = data['results']['issue_number'],
+                    cover_date = data['results']['cover_date'],
+                    cover_img = data['results']['image']['original_url'],
+                    deck = data['results']['deck'],
+                    price = '4.99'
+                    )
 
-        params = {"api_key":key, 
-                  "field_list":"id,name,deck,cover_date,issue_number,image,first_appearance_characters,character_credits",
-                  "format":"json"
-                 }
-
-        headers = {
-                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
-                  "Content-Type": "application/json"
-                  }
-        try:
-            res = requests.get(url, headers=headers, params=params)
-            res.raise_for_status()
-        except requests.exceptions.HTTPError as errh:
-            return "An Http Error occurred:" + repr(errh)
-        except requests.exceptions.ConnectionError as errc:
-            return "An Error Connecting to the API occurred:" + repr(errc)
-        except requests.exceptions.Timeout as errt:
-            return "A Timeout Error occurred:" + repr(errt)
-        except requests.exceptions.RequestException as err:
-            return "An Unknown Error occurred" + repr(err)
-        
-
-        data = res.json()
-
-        new_comic = Comic(id = data['results']['id'],
-                        name = data['results']['name'],
-                        issue_number = data['results']['issue_number'],
-                        cover_date = data['results']['cover_date'],
-                        cover_img = data['results']['image']['original_url'],
-                        deck = data['results']['deck'],
-                        price = '4.99'
-                        )
-
-        return new_comic
+    return new_comic
 
 
 def add_comic_to_db(comic):
-    """Add the comic to the db if it does not already exist
-    >>> returns None
+    """Add the comic to the db
+    >>> returns comic instance
     """
 
-    # check for comic issue in SQL db
-    exists = db.session.query(db.exists().where(Comic.id == comic.id)).scalar()
-    
-    # comic exists in db, return None
-    if exists:
-        return None
+    db.session.add(comic)
+    db.session.commit()
 
-    # comic is not in the db, add and commit, return None
-    else:
-        db.session.add(comic)
-        db.session.commit()
+    new_comic = Comic.query.get(comic.id)
 
-        return None
+    return new_comic
 
 
 def find_single_character(character_id):
@@ -125,8 +106,98 @@ def find_single_character(character_id):
         return "An Unknown Error occurred" + repr(err)
     
     data = res.json()
+
+    # shorthand variable for data results
+    results = data['results']
+
+    character = Character(id=results['id'],
+                          name=results['name'], 
+                          real_name=results['real_name'], 
+                          deck=results['deck'], 
+                          first_appear_issue_id=results['first_appeared_in_issue']['id'],
+                          first_appear_issue_name=results['first_appeared_in_issue']['name'],
+                          first_appear_issue_num=results['first_appeared_in_issue']['issue_number'],                 
+                          total_appearances=results['count_of_issue_appearances'], 
+                          icon_image_url=results['image']['icon_url'],
+                          original_url=results['image']['original_url'],
+                          publisher_id=results['publisher']['id'],
+                          publisher_name=results['publisher']['name']
+                          )
+
+    return character
+
+def find_character_appearances(character_id):
+    """
+    >>> Query the API for the comic character
+    >>> returns json response data
     
-    return data
+    """
+
+    # list to hold character appearances
+    appearances = []
+
+    # title names to ignore
+    forbidden_names = ['TPB','HC','HC/TPB', 'TPB/HC', 'HC\TPB', 'TPB\HC', 'Chapter','Volume', '', 'SC']
+
+    key = COMIC_API_KEY
+    url = COMIC_CHARACTER + f'{character_id}'
+
+    params = {"api_key":key, 
+              "field_list":"id,name,real_name,aliases,deck,first_appeared_in_issue,count_of_issue_appearances,image,api_detail_url,publisher,issue_credits",
+              "format":"json"
+            }
+
+    headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+    "Content-Type": "application/json"
+    }
+
+    try:
+        res = requests.get(url, headers=headers, params=params)
+        res.raise_for_status()
+    except requests.exceptions.HTTPError as errh:
+        return "An Http Error occurred:" + repr(errh)
+    except requests.exceptions.ConnectionError as errc:
+        return "An Error Connecting to the API occurred:" + repr(errc)
+    except requests.exceptions.Timeout as errt:
+        return "A Timeout Error occurred:" + repr(errt)
+    except requests.exceptions.RequestException as err:
+        return "An Unknown Error occurred" + repr(err)
+    
+    data = res.json()
+
+    # shorthand variable for data results
+    results = data['results']
+
+    # shorthand variable for dictionary of comics where character appears
+    comic_credits = results['issue_credits']
+    
+    # loop over all of the comics in response data
+    for i in comic_credits:
+        # additional title filters within the loop for titles that start with forbidden names
+        if i['name'] not in forbidden_names and i['name'] != None and not i['name'].startswith(('Volume', 'Chapter', 'Book', 'Part', 'Vol.')):
+            id = i['id']
+            name = i['name']
+            comic = {'id': id, 'name': name}
+            # append issues to appearances list
+            appearances.append(comic)
+            
+    db.session.commit()
+
+    return appearances
+
+
+def add_character_to_db(character):
+    """Add the character to the db
+    >>> returns character instance
+    """
+
+    db.session.add(character)
+    db.session.commit()
+
+    new_character = Character.query.get(character.id)
+
+    return new_character
 
 
 def search_characters(search_term):
@@ -231,7 +302,7 @@ def search_characters(search_term):
                 publisher_name = None
 
 
-            # if the character is not in the db already -> create new character instance
+            # create new character instance
             new_character = Character(id=id,
                                 name=name, 
                                 real_name=real_name, 
