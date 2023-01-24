@@ -1,6 +1,16 @@
 {% extends 'shop.html' %}
 {% block title %}My Account{% endblock %}
 {% block content %}
+
+
+<!-- flashed messages -->
+<div class="container">
+    {% for category, message in get_flashed_messages(with_categories=True) %}
+    <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+</div>
+<!-- end flashed messages -->
+
 <!-- Start My Account Area  -->
 <div class="axil-dashboard-area axil-section-gap">
     <div class="container">
@@ -12,7 +22,6 @@
                             <div class="nav nav-tabs" role="tablist">
                                 <a class="nav-item nav-link active" data-bs-toggle="tab" href="#nav-dashboard" role="tab" aria-selected="true"><i class="fas fa-th-large"></i>Dashboard</a>
                                 <a class="nav-item nav-link" data-bs-toggle="tab" href="#nav-orders" role="tab" aria-selected="false"><i class="fas fa-shopping-basket"></i>Orders</a>
-                                <a class="nav-item nav-link" data-bs-toggle="tab" href="#nav-downloads" role="tab" aria-selected="false"><i class="fas fa-file-download"></i>Downloads</a>
                                 <a class="nav-item nav-link" data-bs-toggle="tab" href="#nav-account" role="tab" aria-selected="false"><i class="fas fa-user"></i>Account Details</a>
                                 <a class="nav-item nav-link" href="/logout"><i class="fal fa-sign-out"></i>Logout</a>
                             </div>
@@ -41,51 +50,21 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            {% for order in orders %}
                                             <tr>
-                                                <th scope="row">#6523</th>
-                                                <td>September 10, 2020</td>
-                                                <td>Processing</td>
-                                                <td>$326.63 for 3 items</td>
-                                                <td><a href="#" class="axil-btn view-btn">View</a></td>
+                                                <th scope="row">#{{ order.id }}</th>
+                                                <td>{{ order.created }}</td>
+                                                <td>{{ order.order_status }}</td>
+                                                <td>{{ order.total }}</td>
+                                                <td><a href="/user/order/{{ order.id }}" class="axil-btn view-btn">View</a></td>
                                             </tr>
-                                            <tr>
-                                                <th scope="row">#6523</th>
-                                                <td>September 10, 2020</td>
-                                                <td>On Hold</td>
-                                                <td>$326.63 for 3 items</td>
-                                                <td><a href="#" class="axil-btn view-btn">View</a></td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">#6523</th>
-                                                <td>September 10, 2020</td>
-                                                <td>Processing</td>
-                                                <td>$326.63 for 3 items</td>
-                                                <td><a href="#" class="axil-btn view-btn">View</a></td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">#6523</th>
-                                                <td>September 10, 2020</td>
-                                                <td>Processing</td>
-                                                <td>$326.63 for 3 items</td>
-                                                <td><a href="#" class="axil-btn view-btn">View</a></td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">#6523</th>
-                                                <td>September 10, 2020</td>
-                                                <td>Processing</td>
-                                                <td>$326.63 for 3 items</td>
-                                                <td><a href="#" class="axil-btn view-btn">View</a></td>
-                                            </tr>
+                                            {% endfor %}
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
                         </div>
-                        <div class="tab-pane fade" id="nav-downloads" role="tabpanel">
-                            <div class="axil-dashboard-order">
-                                <p>You don't have any download</p>
-                            </div>
-                        </div>
+
                         <div class="tab-pane fade" id="nav-account" role="tabpanel">
                             <div class="col-lg-9">
                                 <div class="axil-dashboard-account">
