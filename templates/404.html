@@ -1,17 +1,33 @@
 {% extends "shop.html" %}
 {% block title %}Page Not Found{% endblock %}
 {% block content %}
-<div class="axil-product-cart-area axil-section-gap">
+
+<div class="axil-about-area about-style-1 axil-section-gap ">
     <div class="container">
         <div class="row align-items-center">
-            <div class="col-lg-6 col-md-8">
-        <section>
-            <h1>404</h1>
-            <h3>Page Not Found</h3>
-            <p> What you were looking for is just not there. <a href="/">Return to Shop</a></p>
-        </section>
+            <div class="col-xl-4 col-lg-6">
+                <div class="about-thumbnail">
+                    <div class="thumbnail">
+                        <img src="/static/images/error-image/error_image.png" alt="Error Image">
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-8 col-lg-6">
+                <div class="about-content content-right">
+                    <h1>404</h1>
+                    <h3>Page Not Found</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="singin-header-btn">
+                                <p>What you were looking for is just not there.</p>
+                                <a href="/" class="axil-btn btn-bg-secondary sign-up-btn">Go Back</a>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
         </div>
     </div>
 </div>
-
 {% endblock %}
