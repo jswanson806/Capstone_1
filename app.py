@@ -14,7 +14,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from models import db, connect_db, User, Character, Comic, Order
 from forms import UserSignUpForm, EditUserForm, UserSignInForm
-from methods import search_characters, find_single_character, add_comic_to_db, get_comic_issue, clear_session_cart
+from methods import search_characters, find_single_character, find_character_appearances, add_character_to_db, add_comic_to_db, get_comic_issue, clear_session_cart
 import stripe
 
 
@@ -216,10 +216,27 @@ def show_user_reading_list(user_id):
 @app.route('/users/reading_list/<int:comic_id>', methods=["POST"])
 def add_reading_list_item(comic_id):
     """Add item to user reading list."""
-
+    
     if not g.user:
         flash("Login to save comics", "danger")
         return redirect('/')
+
+    # if comic is in db, query the db and return comic
+    # else query api and return comic object
+
+    # check for comic issue in SQL db
+    exists = db.session.query(db.exists().where(Comic.id == comic_id)).scalar()
+    
+    if exists:
+        # query SQL db comic
+        comic = Comic.query.get(comic_id)
+    else:
+        # query api for comic, returns comic object instance
+        new_comic = get_comic_issue(comic_id)
+
+        # add the comic to the db if it does not already exist, returns db comic object
+        comic = add_comic_to_db(new_comic)
+    
     # get the comic object from the db
     comic = Comic.query.get_or_404(comic_id)
     # get the user from the db
@@ -264,63 +281,40 @@ def show_saved_characters(user_id):
 
 @app.route('/users/characters/<int:character_id>', methods=["POST"])
 def add_character(character_id):
-    """Add character to list of user's saved characters."""
+    """Add character to list of user's saved characters.
+    >>> if character is in db, query the db and return character object
+    >>> else query api and return character object
+    """
 
     if not g.user:
-        flash("Login to save characters.", "danger")
-        return redirect('/signin')
-
-    else:
-        # check for character in SQL db
-        exists = db.session.query(db.exists().where(Character.id == character_id)).scalar()
-
-        # if character is already present in SQL db, query the character
-        if exists:
-            # get the character from the db
-            character = Character.query.get(character_id)
-            # get the user from the db
-            user = User.query.get_or_404(g.user.id)
-            # append the character to user.characters
-            user.characters.append(character)
-            return redirect(f'/characters/{character_id}')
+        flash("Login to save comics", "danger")
+        return redirect('/')
         
-        # character does not exist in db, query api
-        else:
-            # query api for single character and return json response data
-            data = find_single_character(character_id)
+    # if character is in db, query the db and return character
+    # else query api and return character object
 
-            # shorthand variable for data results
-            results = data['results']
-
-            character = Character(id=results['id'],
-                                  name=results['name'], 
-                                  real_name=results['real_name'], 
-                                  deck=results['deck'], 
-                                  first_appear_issue_id=results['first_appeared_in_issue']['id'],
-                                  first_appear_issue_name=results['first_appeared_in_issue']['name'],
-                                  first_appear_issue_num=results['first_appeared_in_issue']['issue_number'],                 
-                                  total_appearances=results['count_of_issue_appearances'], 
-                                  icon_image_url=results['image']['icon_url'],
-                                  original_url=results['image']['original_url'],
-                                  publisher_id=results['publisher']['id'],
-                                  publisher_name=results['publisher']['name']
-                                  )
+    # check for comic issue in SQL db
+    exists = db.session.query(db.exists().where(Character.id == character_id)).scalar()
     
-            # add character and commit to db
-            db.session.add(character)
-            db.session.commit()
+    if exists:
+        # query SQL db character
+        character = Character.query.get(character_id)
+    else:
+        # query api for character, returns character object instance
+        new_character = find_single_character(character_id)
 
-            # get the character from the db
-            character = Character.query.get(character_id)
-            # get the user from the db
-            user = User.query.get_or_404(g.user.id)
+        # add the character to the db, returns db character object
+        character = add_character_to_db(new_character)
 
-            # append the character to user.characters
-            user.characters.append(character)
-            # commit changes to user in db
-            db.session.commit()
+    # get the user from the db
+    user = User.query.get_or_404(g.user.id)
+    # append the character to user.characters
+    user.characters.append(character)
 
-            return redirect(f'/characters/{character_id}')
+    db.session.commit()
+
+    return redirect(f'/characters/{character_id}')
+        
     
 
 @app.route('/users/<int:character_id>/remove_character', methods=["POST"])
@@ -368,53 +362,21 @@ def show_character_details(character_id):
     >>> 
     >>> Pass character instance and appearances list to route.
     """
-    # list to hold character appearances
-    appearances = []
-
-    # title names to ignore
-    forbidden_names = ['TPB','HC','HC/TPB', 'TPB/HC', 'HC\TPB', 'TPB\HC', 'Chapter','Volume', '', 'SC']
-
-    # query api for single character and return json response data
-    data = find_single_character(character_id)
-
-    # shorthand variable for data results
-    results = data['results']
-
-    # shorthand variable for dictionary of comics where character appears
-    comic_credits = results['issue_credits']
     
-    # loop over all of the comics in response data
-    for i in comic_credits:
-        # additional title filters within the loop for titles that start with forbidden names
-        if i['name'] not in forbidden_names and i['name'] != None and not i['name'].startswith(('Volume', 'Chapter', 'Book', 'Part', 'Vol.')):
-            id = i['id']
-            name = i['name']
-            comic = {'id': id, 'name': name}
-            # append issues to appearances list
-            appearances.append(comic)
+    # query api for single character and return character instance
+    appearances = find_character_appearances(character_id)
+
 
     # check for character in SQL db
-    exists = db.session.query(db.exists().where(Character.id == id)).scalar()
+    exists = db.session.query(db.exists().where(Character.id == character_id)).scalar()
 
     # if character is already present in SQL db, query the character
     if exists:
-        character = Character.query.get(id)
+        character = Character.query.get(character_id)
         return render_template('character-details.html', character=character, appearances=appearances)
     # character does not exist, create new instance
     else:
-        character = Character(id=results['id'],
-                              name=results['name'], 
-                              real_name=results['real_name'], 
-                              deck=results['deck'], 
-                              first_appear_issue_id=results['first_appeared_in_issue']['id'],
-                              first_appear_issue_name=results['first_appeared_in_issue']['name'],
-                              first_appear_issue_num=results['first_appeared_in_issue']['issue_number'],                 
-                              total_appearances=results['count_of_issue_appearances'], 
-                              icon_image_url=results['image']['icon_url'],
-                              original_url=results['image']['original_url'],
-                              publisher_id=results['publisher']['id'],
-                              publisher_name=results['publisher']['name']
-                              )
+        character = find_single_character(character_id)
 
         return render_template('character-details.html', character=character, appearances=appearances)
 
@@ -452,11 +414,20 @@ def add_item_to_session_cart(comic_id):
     """Add item to cart in session."""
    
     # if comic is in db, query the db and return comic
-    # else query api and return comic instance
-    comic = get_comic_issue(comic_id)
+    # else query api and return comic object
 
-    # add the comic to the db if it does not already exist, returns None
-    add_comic_to_db(comic)
+    # check for comic issue in SQL db
+    exists = db.session.query(db.exists().where(Comic.id == comic_id)).scalar()
+    
+    if exists:
+        # query SQL db comic
+        comic = Comic.query.get(comic_id)
+    else:
+        # query api for comic, returns comic object instance
+        new_comic = get_comic_issue(comic_id)
+
+        # add the comic to the db if it does not already exist, returns db comic object
+        comic = add_comic_to_db(new_comic)
 
     # check for the cart in the session
     if 'cart' in session:
