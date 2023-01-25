@@ -20,16 +20,16 @@
                         <tbody>
                             <tr>
                                 <th scope="row">{{ order.id }}</th>
-                                <td>{{ order.created }}</td>
-                                <td>{{ order.order_status }}</td>
-                                <td>{{ order.total }}</td>
+                                <td class="order-info">{{ order.created }}</td>
+                                <td class="order-info">{{ order.order_status }}</td>
+                                <td class="order-info">{{ order.total }}</td>
                             </tr>
                             <tr>
                                 <th scope="col">Items in This Order</th>
                             </tr>
                             {% for item in order_items %}
                             <tr>
-                                <td>{{ item.name }}</td>
+                                <td class="order-info">{{ item.name }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
