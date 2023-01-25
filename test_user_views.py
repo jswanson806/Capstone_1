@@ -48,6 +48,7 @@ class UserViewTestCase(TestCase):
         db.session.rollback()
         return resp
 
+
     def test_users_table(self):
         """Are users being added to the users table using signup (called in setUp function)?"""
 
@@ -84,6 +85,7 @@ class UserViewTestCase(TestCase):
         user = User.query.filter(User.first_name=='John').all()
         self.assertIsNotNone(user)
     
+
     def setup_comics(self):
         # test comics
         test_comic = Comic(id="8888",
@@ -116,7 +118,7 @@ class UserViewTestCase(TestCase):
                 sess[CURR_USER_KEY] = self.testuser.id
                 
             # post request for comic to add to reading list
-            resp = c.post('/users/reading_list/8888', follow_redirects=True)
+            resp = c.post(f'/users/reading_list/8888', follow_redirects=True)
             
             self.assertEqual(resp.status_code, 200)
             
@@ -125,7 +127,19 @@ class UserViewTestCase(TestCase):
             self.assertEqual(len(reading), 1)
             
             self.assertEqual(reading[0].user_id, self.testuser.id)
+
+
+    def test_add_comic_unauthorized(self):
+         """Are guests prevented from adding characters?"""
+         # character_id for 'Raven' from api
+         comic_id = 9999
+         with self.client as c:
+             # post request for comic to add to reading list
+             resp = c.post(f'/users/reading_list/{comic_id}', follow_redirects=True)
+             self.assertEqual(resp.status_code, 200)
+             self.assertIn('Login to save comics', str(resp.data))           
     
+
     def show_reading_list(self):
         """Do comics display on the reading list page?"""
 
@@ -142,11 +156,11 @@ class UserViewTestCase(TestCase):
                 sess[CURR_USER_KEY] = self.testuser.id
                 
             # post request for comic to add to reading list
-            resp = c.post('/users/reading_list/8888', follow_redirects=True)
+            resp = c.post(f'/users/reading_list/8888', follow_redirects=True)
             self.assertEqual(resp.status_code, 200)
 
             # post request to add another comic to reading list
-            resp1 = c.post('/users/reading_list/9999', follow_redirects=True)
+            resp1 = c.post(f'/users/reading_list/9999', follow_redirects=True)
             self.assertEqual(resp1.status_code, 200)
 
             resp2 = c.get(f'users/{self.testuser.id}/reading')
@@ -154,6 +168,21 @@ class UserViewTestCase(TestCase):
             self.assertIn("testcomic", str(resp2.data))
             self.assertIn("testcomic1", str(resp2.data))
         
+
+    def test_show_reading_list_unauthorized(self):
+         """Are guests prevented from seeing other user's reading list?"""
+         # character_id for 'Raven' from api
+         user = User.query.filter(User.first_name=='test1').one()
+
+         with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+
+            #request for reading list
+            resp = c.get(f'/users/{user.id}/reading', follow_redirects=True)
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('Access unauthorized', str(resp.data)) 
+
 
     def test_remove_from_reading_list(self):
         """Are comics being removed from the user's reading list?"""
@@ -166,11 +195,11 @@ class UserViewTestCase(TestCase):
                 sess[CURR_USER_KEY] = self.testuser.id
                 
             # post request to add comic to reading list
-            resp = c.post('/users/reading_list/8888', follow_redirects=True)
+            resp = c.post(f'/users/reading_list/8888', follow_redirects=True)
             self.assertEqual(resp.status_code, 200)
 
             # post request to add another comic to reading list
-            resp1 = c.post('/users/reading_list/9999', follow_redirects=True)
+            resp1 = c.post(f'/users/reading_list/9999', follow_redirects=True)
             self.assertEqual(resp1.status_code, 200)
 
             # check length of reading list to be 2
@@ -184,6 +213,17 @@ class UserViewTestCase(TestCase):
             # check length of reading list to be 1
             reading1 = Reading_List.query.all()
             self.assertEqual(len(reading1), 1)
+
+
+    def test_remove_from_reading_list_unauthorized(self):
+        """Are users prevented from removing other user's reading list items?"""
+
+        with self.client as c:
+               
+           # request for removing comic
+           resp = c.post(f'/users/8888/remove_comic', follow_redirects=True)
+           self.assertEqual(resp.status_code, 200)
+           self.assertIn('Access Unauthorized.', str(resp.data))
 
 
     def setup_characters(self):
@@ -308,7 +348,7 @@ class UserViewTestCase(TestCase):
             self.assertEqual(len(characters1), 1)
             
 
-    def test_add_character_unauthorized(self):
+    def test_remove_character_unauthorized(self):
           """Are guests prevented from removing characters?"""
 
           # character_id for 'Raven' from api
