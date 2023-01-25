@@ -56,7 +56,7 @@
                                                 <td>{{ order.created }}</td>
                                                 <td>{{ order.order_status }}</td>
                                                 <td>{{ order.total }}</td>
-                                                <td><a href="/user/order/{{ order.id }}" class="axil-btn view-btn">View</a></td>
+                                                <td><a href="/user/{{ g.user.id }}/order/{{ order.id }}" class="axil-btn view-btn">View</a></td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>
