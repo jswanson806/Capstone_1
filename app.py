@@ -337,8 +337,9 @@ def remove_character(character_id):
 @app.route('/characters')
 def find_characters():
     """Find characters matching keyword search."""
+
     args = request.args['prod-search']
-    # get matching results from api (limit 100) or local db if characters exist already
+    # get matching results from api (limit 100)
     search_res = search_characters(args)
     
     return render_template('characters-search.html', characters=search_res)
@@ -627,9 +628,15 @@ def show_comic_details(comic_id):
 
     return render_template('comic-details.html', comic=comic)
 
-@app.route("/user/order/<int:order_id>")
-def show_order_details(order_id):
+#******************************************Order Routes***************************************
+
+@app.route("/user/<int:user_id>/order/<int:order_id>")
+def show_order_details(user_id, order_id):
     """Show order details page."""
+    
+    if g.user.id != user_id:
+        flash('Access Unauthorized', 'danger')
+        return redirect('/')
 
     order = Order.query.get(order_id)
     order_items = order.items
