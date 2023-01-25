@@ -8,7 +8,8 @@ collections.MutableMapping = collections.abc.MutableMapping
 collections.Iterable = collections.abc.Iterable
 collections.MutableSet = collections.abc.MutableSet
 collections.Callable = collections.abc.Callable
-from models import db, User, Comic, Reading_List, Character, Character_List
+from models import db, User, Comic, Character, Comic, Order
+from bs4 import BeautifulSoup
 
 os.environ['DATABASE_URL'] = "postgresql:///comicbook_store"
 
@@ -27,8 +28,7 @@ class UserViewTestCase(TestCase):
         """Create test client, add sample data."""
 
         User.query.delete()
-        Comic.query.delete()
-        Character.query.delete()
+        Order.query.delete()
         
         self.client = app.test_client()
 
@@ -49,7 +49,7 @@ class UserViewTestCase(TestCase):
         db.session.rollback()
         return resp    
 
-        
+
     def setup_orders(self):
         # test orders
         test_order = Order(session_id="2222",
@@ -60,27 +60,68 @@ class UserViewTestCase(TestCase):
         order1 = Order(session_id="3333",
                             sub_total="899",
                             total="8.99",
-                            customer_name="test1 user1",
-                            email="test1@test.com")
+                            customer_name="test user",
+                            email="test@test.com")
         db.session.add_all([test_order, order1])
         db.session.commit()
 
+    def test_order_add_to_database(self):
+        """Are orders being added to the database?"""
 
-    # def test_order_history_display(self):
-    #     """Can we see orders made by the user?"""
-    #     self.setup_orders()
+        self.setup_orders()
 
-    #     # fake login
-    #     with self.client as c:
-    #         with c.session_transaction() as sess:
-    #             sess[CURR_USER_KEY] = self.testuser.id
+        order = Order.query.filter(Order.session_id=='2222').all()
+        self.assertIsNotNone(order)
 
-    #         resp = c.get(f'/users/{self.testuser.id}/account')
-    #         self.assertEqual(resp.status_code, 200)
+        order1 = Order.query.filter(Order.session_id=='3333').all()
+        self.assertIsNotNone(order1)
 
-    #         # instantiate instance of BeautifulSoup
-    #         soup = BeautifulSoup(str(resp.data), 'html.parser')
-    #         # find all stat li's in HTML
-    #         found = soup.find_all("td", {'id': "order-info"})
-    #         print('###################', found)
-    #         self.assertIn("#1", found[0].text)
+
+    def test_order_history_display(self):
+        """Can we see orders made by the user?"""
+        self.setup_orders()
+
+        # fake login
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+            
+            # first order from db
+            order = Order.query.filter(Order.session_id == '2222').one()
+            
+            # request first order
+            resp = c.get(f'/user/{self.testuser.id}/order/{order.id}')
+            self.assertEqual(resp.status_code, 200)
+
+            # check for first order total
+            self.assertIn("4.99", str(resp.data))
+
+            # second order from db
+            order1 = Order.query.filter(Order.session_id == '3333').one()
+
+            # request second order
+            resp = c.get(f'/user/{self.testuser.id}/order/{order1.id}')
+            self.assertEqual(resp.status_code, 200)
+
+            # check for first order total
+            self.assertIn("8.99", str(resp.data))
+
+    def test_order_history_unauthorized(self):
+        """Are users prevented from seeing other users order history?"""
+
+        self.setup_orders()
+
+        # wrong user variable
+        user = User.query.filter(User.first_name=='test1').one()
+        # order to try and view
+        order = Order.query.filter(Order.session_id=='2222').one()
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+
+            # request character list from wrong user
+            resp = c.get(f'/user/{user.id}/order/{order.id}', follow_redirects=True)
+            self.assertEqual(resp.status_code, 200)
+            # check for flash message
+            self.assertIn('Access Unauthorized', str(resp.data))
