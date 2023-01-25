@@ -21,7 +21,7 @@
                         <tbody>
                             {% for comic in reading_list %}
                                 <tr>
-                                    <form action="/users/{{ comic.id }}/remove_comic", method="POST">
+                                    <form action="/users/{{ g.user.id }}/remove_comic/{{ comic.id }}", method="POST">
                                         <td class="product-remove"><button class="remove-wishlist"><i class="fal fa-times"></i></button></td>
                                     </form>
                                     <td class="product-thumbnail"><a href="/comic/{{ comic.id }}"><img src="{{ comic.cover_img }}" alt="Digital Product"></a></td>
