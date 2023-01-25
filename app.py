@@ -213,11 +213,11 @@ def show_user_reading_list(user_id):
     return render_template('reading-list.html', reading_list=reading_list)
 
 
-@app.route('/users/<int:user_id>/reading_list/<int:comic_id>', methods=["POST"])
-def add_reading_list_item(user_id, comic_id):
+@app.route('/users/reading_list/<int:comic_id>', methods=["POST"])
+def add_reading_list_item(comic_id):
     """Add item to user reading list."""
     
-    if g.user.id != user_id:
+    if not g.user:
         flash("Login to save comics", "danger")
         return redirect('/')
 
@@ -248,11 +248,11 @@ def add_reading_list_item(user_id, comic_id):
     return redirect(f'/comic/{comic.id}')
 
 
-@app.route('/users/<int:user_id>/remove_comic/<int:comic_id>', methods=["POST"])
-def remove_reading_list_item(user_id, comic_id):
+@app.route('/users/<int:comic_id>/remove_comic', methods=["POST"])
+def remove_reading_list_item(comic_id):
     """Remove comic from user reading list."""
 
-    if g.user.id != user_id:
+    if not g.user:
         flash("Access Unauthorized.", "danger")
         return redirect('/signin')
     # get the comic object from the db
@@ -633,7 +633,7 @@ def show_comic_details(comic_id):
 @app.route("/user/<int:user_id>/order/<int:order_id>")
 def show_order_details(user_id, order_id):
     """Show order details page."""
-
+    
     if g.user.id != user_id:
         flash('Access Unauthorized', 'danger')
         return redirect('/')
