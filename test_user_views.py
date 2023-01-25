@@ -216,7 +216,7 @@ class UserViewTestCase(TestCase):
 
 
     def test_remove_from_reading_list_unauthorized(self):
-        """Are users prevented from removing other user's reading list items?"""
+        """Are users prevented from removing reading list items if they are not logged in?"""
 
         with self.client as c:
                
