@@ -8,8 +8,7 @@ collections.MutableMapping = collections.abc.MutableMapping
 collections.Iterable = collections.abc.Iterable
 collections.MutableSet = collections.abc.MutableSet
 collections.Callable = collections.abc.Callable
-from models import db, User, Comic, Character, Comic, Order
-from bs4 import BeautifulSoup
+from models import db, User, Order
 
 os.environ['DATABASE_URL'] = "postgresql:///comicbook_store"
 
