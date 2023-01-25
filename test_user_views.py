@@ -1,7 +1,13 @@
 import os
 from unittest import TestCase
-
-from models import db, connect_db, User, Comic, Reading_List, Character, Character_List
+import collections.abc
+collections.Container = collections.abc.Container
+collections.Mapping = collections.abc.Mapping
+collections.MutableMapping = collections.abc.MutableMapping
+collections.Iterable = collections.abc.Iterable
+collections.MutableSet = collections.abc.MutableSet
+collections.Callable = collections.abc.Callable
+from models import db, User, Comic, Reading_List, Character, Character_List, Order, User_Orders
 from bs4 import BeautifulSoup
 
 os.environ['DATABASE_URL'] = "postgresql:///comicbook_store"
@@ -21,7 +27,6 @@ class UserViewTestCase(TestCase):
 
         User.query.delete()
         Comic.query.delete()
-        Character.query.delete()
         
         self.client = app.test_client()
 
@@ -43,8 +48,8 @@ class UserViewTestCase(TestCase):
         db.session.rollback()
         return resp
 
-    def test_users_create(self):
-        """Are users being added to the users table?"""
+    def test_users_table(self):
+        """Are users being added to the users table using signup (called in setUp function)?"""
 
         # fake login
         with self.client as c:
@@ -56,6 +61,43 @@ class UserViewTestCase(TestCase):
             self.assertEqual(resp.status_code, 200)
             # is the user's first name being displayed?
             self.assertIn("test", str(resp.data))
+    
+
+    def test_edit_account_info(self):
+        """Can users edit their info?"""
+        # fake login
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+            
+            resp = c.post(f'/users/{self.testuser.id}/account', data={
+            'username': 'test_edit',
+            'first_name': 'John',
+            'last_name': 'Doe',
+            'email': 'johndoe@email.com',
+            'password': f'{self.testuser.password}',
+            }, follow_redirects=True)
+
+        self.assertEqual(resp.status_code, 200)
+        
+        # check for new user information in db
+        user = User.query.filter(User.first_name=='John').all()
+        self.assertIsNotNone(user)
+
+    def setup_comics(self):
+        # test comics
+        test_comic = Comic(id="8888",
+                            name="testcomic",
+                            issue_number="8888",
+                            deck="this is a test comic")
+
+        comic1 = Comic(id="9999",
+                        name="testcomic1",
+                        issue_number="9999",
+                        deck="this is another test comic")
+
+        db.session.add_all([test_comic, comic1])
+        db.session.commit()
     
     def setup_comics(self):
         # test comics
@@ -221,11 +263,11 @@ class UserViewTestCase(TestCase):
             self.assertIn("testcharacter1", str(resp2.data))
 
     def test_remove_from_character_list(self):
-        """Are comics being removed from the user's reading list?"""
+        """Are characters being removed from the user's character list?"""
         
         self.setup_characters()
 
-         # fake login
+        # fake login
         with self.client as c:
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.testuser.id
@@ -250,4 +292,3 @@ class UserViewTestCase(TestCase):
             characters1 = Character_List.query.all()
             self.assertEqual(len(characters1), 1)
             
-# finish this test
