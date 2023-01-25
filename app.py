@@ -213,11 +213,11 @@ def show_user_reading_list(user_id):
     return render_template('reading-list.html', reading_list=reading_list)
 
 
-@app.route('/users/reading_list/<int:comic_id>', methods=["POST"])
-def add_reading_list_item(comic_id):
+@app.route('/users/<int:user_id>/reading_list/<int:comic_id>', methods=["POST"])
+def add_reading_list_item(user_id, comic_id):
     """Add item to user reading list."""
     
-    if not g.user:
+    if g.user.id != user_id:
         flash("Login to save comics", "danger")
         return redirect('/')
 
