@@ -83,21 +83,6 @@ class UserViewTestCase(TestCase):
         # check for new user information in db
         user = User.query.filter(User.first_name=='John').all()
         self.assertIsNotNone(user)
-
-    def setup_comics(self):
-        # test comics
-        test_comic = Comic(id="8888",
-                            name="testcomic",
-                            issue_number="8888",
-                            deck="this is a test comic")
-
-        comic1 = Comic(id="9999",
-                        name="testcomic1",
-                        issue_number="9999",
-                        deck="this is another test comic")
-
-        db.session.add_all([test_comic, comic1])
-        db.session.commit()
     
     def setup_comics(self):
         # test comics
@@ -202,7 +187,7 @@ class UserViewTestCase(TestCase):
 
 
     def setup_characters(self):
-        # test comics
+        # set up test comics in test db
         test_character = Character(id="7777", name="testcharacter")
 
         character1 = Character(id="6666", name="testcharacter1")
@@ -214,7 +199,6 @@ class UserViewTestCase(TestCase):
     def test_add_to_character_list(self):
         """Are characters being added to the characters table?"""
 
-        self.setup_characters()
 
         character = Character.query.get(7777)
         self.assertIsNotNone(character)
@@ -237,10 +221,24 @@ class UserViewTestCase(TestCase):
             
             self.assertEqual(characters[0].user_id, self.testuser.id)
 
+
+    def test_add_character_unauthorized(self):
+        """Are guests prevented from adding characters?"""
+
+        # character_id for 'Raven' from api
+        character_id = 3584
+
+        with self.client as c:
+                
+            # post request for character to add to characters list
+            resp = c.post(f'/users/characters/{character_id}', follow_redirects=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('Login to save comics', str(resp.data))
+
+
     def test_show_character_list(self):
         """Do saved characters display on the characters page?"""
-
-        self.setup_characters()
 
          # fake login
         with self.client as c:
@@ -262,10 +260,27 @@ class UserViewTestCase(TestCase):
             self.assertIn("testcharacter", str(resp2.data))
             self.assertIn("testcharacter1", str(resp2.data))
 
+
+    def test_show_character_list_unauthorized(self):
+            """Are users prevented from seeing other user character lists?"""
+
+            # wrong user variable
+            user = User.query.filter(User.first_name=='test1').one()
+
+            with self.client as c:
+                with c.session_transaction() as sess:
+                    sess[CURR_USER_KEY] = self.testuser.id
+
+                # request character list from wrong user
+                resp = c.get(f'/users/{user.id}/characters', follow_redirects=True)
+
+                self.assertEqual(resp.status_code, 200)
+                # check for flash message
+                self.assertIn('Access unauthorized.', str(resp.data))
+
+
     def test_remove_from_character_list(self):
         """Are characters being removed from the user's character list?"""
-        
-        self.setup_characters()
 
         # fake login
         with self.client as c:
@@ -292,3 +307,17 @@ class UserViewTestCase(TestCase):
             characters1 = Character_List.query.all()
             self.assertEqual(len(characters1), 1)
             
+
+    def test_add_character_unauthorized(self):
+          """Are guests prevented from removing characters?"""
+
+          # character_id for 'Raven' from api
+          character_id = 3584
+
+          with self.client as c:
+
+              # post request for character to add to characters list
+              resp = c.post(f'/users/{character_id}/remove_character', follow_redirects=True)
+
+              self.assertEqual(resp.status_code, 200)
+              self.assertIn('Access Unauthorized.', str(resp.data))
