@@ -27,6 +27,10 @@
                                 <form action="/users/characters/{{ character.id }}", method="POST">
                                     <td class="product-add-character"><button class="axil-btn btn-outline">Add To Characters</a></td>
                                 </form>
+                                {% else %}
+                                <form action="/signin">
+                                    <td><button class="axil-btn btn-outline">Sign In to Save</a></td>
+                                </form>
                                 {% endif %}
                             </tr>
                             {% endfor %}
