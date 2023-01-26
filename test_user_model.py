@@ -7,7 +7,7 @@ collections.MutableMapping = collections.abc.MutableMapping
 collections.Iterable = collections.abc.Iterable
 collections.MutableSet = collections.abc.MutableSet
 collections.Callable = collections.abc.Callable
-from models import db, User, Comic
+from models import db, User, Comic, Character
 from sqlalchemy import exc
 
 
@@ -28,6 +28,7 @@ class UserViewTestCase(TestCase):
 
         User.query.delete()
         Comic.query.delete()
+        Character.query.delete()
         
         self.client = app.test_client()
 
@@ -114,7 +115,7 @@ class UserViewTestCase(TestCase):
 
     def test_invalid_username(self):
         """Test for wrong username"""
-        
+
         self.assertFalse(User.authenticate("notthisname", "password"))
 
 
@@ -122,3 +123,85 @@ class UserViewTestCase(TestCase):
         """Test for wrong password"""
 
         self.assertFalse(User.authenticate(self.testuser.username, "notthisone"))
+
+
+    def setup_characters(self):
+            # set up test comics in test db
+            test_character = Character(id="7777", name="testcharacter")
+
+            character1 = Character(id="6666", name="testcharacter1")
+
+            db.session.add_all([test_character, character1])
+            db.session.commit()
+
+
+    def setup_comics(self):
+        # test comics
+        test_comic = Comic(id="8888",
+                            name="testcomic",
+                            issue_number="8888",
+                            deck="this is a test comic")
+
+        comic1 = Comic(id="9999",
+                        name="testcomic1",
+                        issue_number="9999",
+                        deck="this is another test comic")
+
+        db.session.add_all([test_comic, comic1])
+        db.session.commit()
+
+    def test_character_list(self):
+        """Can we append characters to the user model?"""
+
+        self.setup_characters()
+        
+        # get character object
+        test_character = Character.query.get(7777)
+        self.assertIsNotNone(test_character)
+        # get second character object
+        test_character1 = Character.query.get(6666)
+        self.assertIsNotNone(test_character1)
+        # get user
+        user = User.query.get(self.testuser.id)
+        self.assertIsNotNone(user)
+
+        # append character to characters list
+        user.characters.append(test_character)
+
+        # check for length of user.characters to be 1
+        self.assertEqual(1, len(user.characters))
+
+        # append second character to characters list
+        user.characters.append(test_character1)
+
+        # check for length of user.characters to be 2
+        self.assertEqual(2, len(user.characters))
+
+
+    def test_reading_list(self):
+        """Can we append comics to the user model?"""
+
+        self.setup_comics()
+
+        # get comic object
+        test_comic = Comic.query.get(8888)
+        self.assertIsNotNone(test_comic)
+        # get second comic object
+        test_comic1 = Comic.query.get(9999)
+        self.assertIsNotNone(test_comic1)
+
+        # get user
+        user = User.query.get(self.testuser.id)
+        self.assertIsNotNone(user)
+
+        # append comic to reading list
+        user.reading.append(test_comic)
+
+        # check for length of user.reading to be 1
+        self.assertEqual(1, len(user.reading))
+
+        # append second comic to reading list
+        user.reading.append(test_comic1)
+
+        # check for length of user.reading to be 2
+        self.assertEqual(2, len(user.reading))
