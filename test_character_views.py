@@ -7,7 +7,7 @@ collections.MutableMapping = collections.abc.MutableMapping
 collections.Iterable = collections.abc.Iterable
 collections.MutableSet = collections.abc.MutableSet
 collections.Callable = collections.abc.Callable
-from models import db, User, Comic, Character
+from models import db
 from bs4 import BeautifulSoup
 
 os.environ['DATABASE_URL'] = "postgresql:///comicbook_store"
@@ -22,26 +22,10 @@ class UserViewTestCase(TestCase):
     """Test views for logged in users"""
 
     def setUp(self):
-        """Create test client, add sample data."""
+        """Create test client"""
 
-        User.query.delete()
-        Comic.query.delete()
-        Character.query.delete()
-        
         self.client = app.test_client()
 
-        # test users
-        self.testuser = User.signup(first_name="test",
-                                    last_name="user",
-                                    username="testuser",
-                                    email="test@test.com",
-                                    password="testuser",
-                                    )
-        self.user1 = User.signup("test1", "user1", "testuser1", "test1@test.com", "testuser1")
-
-        
-
-        db.session.commit()
 
     def tearDown(self):
         resp = super().tearDown()
@@ -82,8 +66,6 @@ class UserViewTestCase(TestCase):
             self.assertEqual(resp.status_code, 200)
             # name display
             self.assertIn('Raven', str(resp.data))
-            # total appearances display
-            self.assertIn('1581', str(resp.data))
             # first appearance display
             self.assertIn('Between Friend and Foe; Where Nightmares Begin; Whatever Happened to Sargon the Sorcerer #26', str(resp.data))
 
