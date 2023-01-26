@@ -8,7 +8,7 @@ collections.Iterable = collections.abc.Iterable
 collections.MutableSet = collections.abc.MutableSet
 collections.Callable = collections.abc.Callable
 
-from flask import Flask, render_template, request, flash, redirect, session, g, abort
+from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_mail import Mail, Message
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
@@ -415,7 +415,7 @@ def add_item_to_session_cart(comic_id):
     """Add item to cart in session."""
    
     # if comic is in db, query the db and return comic
-    # else query api and return comic object
+    # else query api and return comic id
 
     # check for comic issue in SQL db
     exists = db.session.query(db.exists().where(Comic.id == comic_id)).scalar()
@@ -427,7 +427,7 @@ def add_item_to_session_cart(comic_id):
         # query api for comic, returns comic object instance
         new_comic = get_comic_issue(comic_id)
 
-        # add the comic to the db if it does not already exist, returns db comic object
+        # add the comic to the db, returns db comic object
         comic = add_comic_to_db(new_comic)
 
     # check for the cart in the session
@@ -463,7 +463,8 @@ def add_item_to_session_cart(comic_id):
 
 @app.route('/cart/update')
 def edit_cart_contents():
-    """Remove item from cart in session."""
+    """Update item quantity in session cart."""
+
     # dictionary to hold the quantities from the query params
     quantities = {}
     # get the query params (quantity inputs from cart items)
