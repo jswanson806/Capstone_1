@@ -7,7 +7,7 @@ collections.MutableMapping = collections.abc.MutableMapping
 collections.Iterable = collections.abc.Iterable
 collections.MutableSet = collections.abc.MutableSet
 collections.Callable = collections.abc.Callable
-from models import db, Character
+from models import db, Character, Comic
 
 
 os.environ['DATABASE_URL'] = "postgresql:///comicbook_store"
@@ -79,6 +79,7 @@ class UserViewTestCase(TestCase):
         character = Character.query.get(6666)
         self.assertIsNotNone(character)
 
+        # are the id's for both Characters different?
         test_character = Character.query.get(7777)
         self.assertNotEqual(test_character.id, character.id)
 
@@ -95,3 +96,52 @@ class UserViewTestCase(TestCase):
         self.assertEqual(character.original_url, 'test_original_url1')
         self.assertEqual(character.publisher_id, '888888')
         self.assertEqual(character.publisher_name, 'test_publisher1')
+
+
+    def setup_comics(self):
+        # test comics
+        test_comic = Comic(id="8888",
+                            name="testcomic",
+                            issue_number="8888",
+                            deck="this is a test comic")
+
+        comic1 = Comic(id="9999",
+                        name="testcomic1",
+                        issue_number="9999",
+                        deck="this is another test comic")
+
+        db.session.add_all([test_comic, comic1])
+        db.session.commit()
+
+
+    def test_add_to_appearances(self):
+        """Can we add comics to character appearances?"""
+        # setup test comics in db
+        self.setup_comics()
+
+        # get the first test comic object from db
+        test_comic = Comic.query.get(8888)
+        self.assertIsNotNone(test_comic)
+
+        # get the first test comic object from db
+        test_comic1 = Comic.query.get(9999)
+        self.assertIsNotNone(test_comic1)
+
+        # get the character object from db
+        character = Character.query.get(7777)
+        self.assertIsNotNone(character)
+
+        # check length of character.appearances to be 0
+        self.assertEqual(0, len(character.appearances))
+
+        # append comic to character appearances
+        character.appearances.append(test_comic)
+        # check length of character.appearances to be 1
+        self.assertEqual(1, len(character.appearances))
+
+        character.appearances.append(test_comic1)
+        # check length of character.appearances to be 2
+        self.assertEqual(2, len(character.appearances))
+
+
+
