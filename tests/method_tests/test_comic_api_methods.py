@@ -1,5 +1,3 @@
-import json
-import os
 import collections.abc
 collections.Container = collections.abc.Container
 collections.Mapping = collections.abc.Mapping
@@ -10,15 +8,10 @@ collections.Callable = collections.abc.Callable
 
 from unittest import TestCase
 from unittest.mock import patch, MagicMock
-from models import db
 from methods import get_comic_issue, find_single_character, find_character_appearances, get_and_filter_appearances, handle_search_results
 from tests.test_character_data import *
 
-os.environ['DATABASE_URL'] = "postgresql:///comicbook_store"
-
 from app import app
-
-db.create_all()
 
 app.config["WTF_CSRF_ENABLED"] = False
 
