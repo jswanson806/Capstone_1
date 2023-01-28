@@ -301,7 +301,23 @@ def add_character(character_id):
         character = Character.query.get(character_id)
     else:
         # query api for character, returns character object instance
-        new_character = find_single_character(character_id)
+        data = find_single_character(character_id)
+
+        # shorthand variable for data results
+        results = data['results']
+        new_character = Character(id=results['id'],
+                          name=results['name'], 
+                          real_name=results['real_name'], 
+                          deck=results['deck'], 
+                          first_appear_issue_id=results['first_appeared_in_issue']['id'],
+                          first_appear_issue_name=results['first_appeared_in_issue']['name'],
+                          first_appear_issue_num=results['first_appeared_in_issue']['issue_number'],                 
+                          total_appearances=results['count_of_issue_appearances'], 
+                          icon_image_url=results['image']['icon_url'],
+                          original_url=results['image']['original_url'],
+                          publisher_id=results['publisher']['id'],
+                          publisher_name=results['publisher']['name']
+                          )
 
         # add the character to the db, returns db character object
         character = add_character_to_db(new_character)
@@ -376,7 +392,22 @@ def show_character_details(character_id):
         return render_template('character-details.html', character=character, appearances=appearances)
     # character does not exist, create new instance
     else:
-        character = find_single_character(character_id)
+        data = find_single_character(character_id)
+        # shorthand variable for data results
+        results = data['results']
+        character = Character(id=results['id'],
+                          name=results['name'], 
+                          real_name=results['real_name'], 
+                          deck=results['deck'], 
+                          first_appear_issue_id=results['first_appeared_in_issue']['id'],
+                          first_appear_issue_name=results['first_appeared_in_issue']['name'],
+                          first_appear_issue_num=results['first_appeared_in_issue']['issue_number'],                 
+                          total_appearances=results['count_of_issue_appearances'], 
+                          icon_image_url=results['image']['icon_url'],
+                          original_url=results['image']['original_url'],
+                          publisher_id=results['publisher']['id'],
+                          publisher_name=results['publisher']['name']
+                          )
 
         return render_template('character-details.html', character=character, appearances=appearances)
 
@@ -564,7 +595,16 @@ def show_checkout_cancel():
 @app.route('/comic/<int:comic_id>')
 def show_comic_details(comic_id):
     """Show comic product page."""
-    comic = get_comic_issue(comic_id)
+    data = get_comic_issue(comic_id)
+
+    comic = Comic(id = data['results']['id'],
+                    name = data['results']['name'],
+                    issue_number = data['results']['issue_number'],
+                    cover_date = data['results']['cover_date'],
+                    cover_img = data['results']['image']['original_url'],
+                    deck = data['results']['deck'],
+                    price = '4.99'
+                    )
 
     return render_template('comic-details.html', comic=comic)
 

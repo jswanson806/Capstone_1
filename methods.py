@@ -50,16 +50,8 @@ def get_comic_issue(comic_id):
         return "An Unknown Error occurred" + repr(err)
     
     data = res.json()
-    new_comic = Comic(id = data['results']['id'],
-                    name = data['results']['name'],
-                    issue_number = data['results']['issue_number'],
-                    cover_date = data['results']['cover_date'],
-                    cover_img = data['results']['image']['original_url'],
-                    deck = data['results']['deck'],
-                    price = '4.99'
-                    )
 
-    return new_comic
+    return data
 
 
 def add_comic_to_db(comic):
@@ -109,24 +101,7 @@ def find_single_character(character_id):
     
     data = res.json()
 
-    # shorthand variable for data results
-    results = data['results']
-
-    character = Character(id=results['id'],
-                          name=results['name'], 
-                          real_name=results['real_name'], 
-                          deck=results['deck'], 
-                          first_appear_issue_id=results['first_appeared_in_issue']['id'],
-                          first_appear_issue_name=results['first_appeared_in_issue']['name'],
-                          first_appear_issue_num=results['first_appeared_in_issue']['issue_number'],                 
-                          total_appearances=results['count_of_issue_appearances'], 
-                          icon_image_url=results['image']['icon_url'],
-                          original_url=results['image']['original_url'],
-                          publisher_id=results['publisher']['id'],
-                          publisher_name=results['publisher']['name']
-                          )
-
-    return character
+    return data
 
 def find_character_appearances(character_id):
     """
