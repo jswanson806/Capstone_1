@@ -353,10 +353,16 @@ def remove_character(character_id):
 @app.route('/characters')
 def find_characters():
     """Find characters matching keyword search."""
-
+    
+    # get the search term from the url
     args = request.args['prod-search']
-    # get matching results from api (limit 100)
-    search_res = search_characters(args)
+
+    # get json data from api (limit 100)
+    data = search_characters(args)
+
+    # iterate over data and build Character instance
+    # returns a list of Character objects
+    search_res = handle_search_results(data)
     
     return render_template('characters-search.html', characters=search_res)
 
@@ -381,7 +387,8 @@ def show_character_details(character_id):
     """
     
     # query api for single character and return character instance
-    appearances = find_character_appearances(character_id)
+    data = find_character_appearances(character_id)
+    appearances = get_and_filter_appearances(data)
 
     # check for character in SQL db
     exists = db.session.query(db.exists().where(Character.id == character_id)).scalar()

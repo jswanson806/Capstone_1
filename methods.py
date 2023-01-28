@@ -103,18 +103,13 @@ def find_single_character(character_id):
 
     return data
 
+
 def find_character_appearances(character_id):
     """
     >>> Query the API for the comic character
     >>> returns json response data
     
     """
-
-    # list to hold character appearances
-    appearances = []
-
-    # title names to ignore
-    forbidden_names = ['TPB','HC','HC/TPB', 'TPB/HC', 'HC\TPB', 'TPB\HC', 'Chapter','Volume', '', 'SC']
 
     key = COMIC_API_KEY
     url = COMIC_CHARACTER + f'{character_id}'
@@ -142,6 +137,16 @@ def find_character_appearances(character_id):
         return "An Unknown Error occurred" + repr(err)
     
     data = res.json()
+
+    return data
+
+
+def get_and_filter_appearances(data):
+    # list to hold character appearances
+    appearances = []
+
+    # title names to ignore
+    forbidden_names = ['TPB','HC','HC/TPB', 'TPB/HC', 'HC\TPB', 'TPB\HC', 'Chapter','Volume', '', 'SC']
 
     # shorthand variable for data results
     results = data['results']
@@ -190,7 +195,7 @@ def search_characters(search_term):
 
     key = COMIC_API_KEY
     url = COMIC_CHARACTERS      
-    search_results = []
+    
     params = {"api_key":key, 
                    "field_list":"id,name,real_name,aliases,deck,first_appeared_in_issue,count_of_issue_appearances,image,api_detail_url,publisher",
                    "filter":f"name:{search_term}",
@@ -213,14 +218,19 @@ def search_characters(search_term):
     except requests.exceptions.RequestException as err:
         return "An Unknown Error occurred" + repr(err)
     
-
     data = res.json() 
+
+    return data
+
+
+def handle_search_results(data):
+    search_results = []
     # count of returned characters from api search
     results_count = data['number_of_page_results']
     # iterate over data and extract character information
 
     # handle possible NoneType from response data
-    for i in range (0,results_count):
+    for i in range (0, results_count):
         result = data['results'][i]
 
         id = result['id']
@@ -256,15 +266,17 @@ def search_characters(search_term):
         else:
             total_appearances = None
 
-        if result['image']['icon_url'] != None:
-            icon_image_url = result['image']['icon_url']
-        else:
-            icon_image_url = None
+        if result['image'] != None:
+            
+            if result['image']['icon_url'] != None:
+                icon_image_url = result['image']['icon_url']
+            else:
+                icon_image_url = None
 
-        if result['image']['original_url'] != None:
-            original_url = result['image']['original_url']
-        else:
-            original_url = None
+            if result['image']['original_url'] != None:
+                original_url = result['image']['original_url']
+            else:
+                original_url = None
 
         if result['publisher'] != None:
 
@@ -279,23 +291,22 @@ def search_characters(search_term):
                 publisher_name = None
 
 
-            # create new character instance
-            new_character = Character(id=id,
-                                name=name, 
-                                real_name=real_name, 
-                                deck=deck, 
-                                first_appear_issue_id=first_appear_issue_id,
-                                first_appear_issue_name=first_appear_issue_name,
-                                first_appear_issue_num=first_appear_issue_num,                 
-                                total_appearances=total_appearances, 
-                                icon_image_url=icon_image_url,
-                                original_url=original_url,
-                                publisher_id=publisher_id,
-                                publisher_name=publisher_name
-                                )
-
-            # append character SQLAlchemy object to the search_results list
-            search_results.append(new_character)
+        # create new character instance
+        new_character = Character(id=id,
+                            name=name, 
+                            real_name=real_name, 
+                            deck=deck, 
+                            first_appear_issue_id=first_appear_issue_id,
+                            first_appear_issue_name=first_appear_issue_name,
+                            first_appear_issue_num=first_appear_issue_num,                 
+                            total_appearances=total_appearances, 
+                            icon_image_url=icon_image_url,
+                            original_url=original_url,
+                            publisher_id=publisher_id,
+                            publisher_name=publisher_name
+                            )
+        # append transient character object to the search_results list
+        search_results.append(new_character)
 
     return search_results
 
