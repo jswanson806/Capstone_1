@@ -367,7 +367,6 @@ def show_character_details(character_id):
     # query api for single character and return character instance
     appearances = find_character_appearances(character_id)
 
-
     # check for character in SQL db
     exists = db.session.query(db.exists().where(Character.id == character_id)).scalar()
 
@@ -460,7 +459,6 @@ def add_item_to_session_cart(comic_id):
     return redirect('/cart')
 
 
-
 @app.route('/cart/update')
 def edit_cart_contents():
     """Update item quantity in session cart."""
@@ -499,8 +497,10 @@ def remove_cart_item(comic_id):
             break
     return redirect('/cart')
 
+
 @app.route("/cart/clear")
 def clear_cart_contents():
+    """Calls the clear_session_cart() method"""
     # pop each item from the session cart until the session['cart'] length is 0
     clear_session_cart()
 
@@ -514,8 +514,10 @@ def create_checkout_session():
     # build the items_list of dictionaries with {'price' : '', 'quantity': ''}
     # stripe uses the price id saved as the val of key 'price' in items_list to get the item name
     items_list = create_line_items()
+
     # takes items_list and creates a stripe checkout session -> returns the checkout_session object
     checkout_session = create_checkout_sess(items_list)
+
     # return the checkout_session url (either 'success' or 'cancel' url)
     return redirect(checkout_session.url, code=303)
     
@@ -542,7 +544,7 @@ def show_checkout_success():
         clear_session_cart()
 
         return render_template("success.html", user=user)
-        
+
     # guest checkout
     else:
         # clear the session cart
