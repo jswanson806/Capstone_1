@@ -2,8 +2,10 @@ import os
 import requests
 from models import db, Comic, Character
 from flask import session
+import stripe
 
 COMIC_API_KEY = os.environ.get('COMIC_API_KEY','6097d6aeb080923e8927570f0ff9ac6f3292fe0a')
+stripe.api_key = os.environ.get('STRIPE_TEST_API_KEY', 'sk_test_51MNeg0DugXxFxym6nqUpiTKKtRpdLwRjM4Hix8NKPObBVtDYIVuW8FxTbLipSvxvt4Oj45yjeUe2iFUTTLVrdadF00KclEHSAC')
 
 # API URLs
 COMIC_BASE = 'https://comicvine.gamespot.com/api'
@@ -331,3 +333,101 @@ def clear_session_cart():
     session.modified = True
     return None
     
+
+def get_all_stripe_products():
+
+    product_list = stripe.Product.list()
+
+    return product_list
+
+
+def create_stripe_product(comic_name):
+
+    new_product = stripe.Product.create(
+            name=comic_name,
+            default_price_data={
+                "unit_amount": 499,
+                "currency": "usd",
+                "recurring": None,
+            },
+            expand=["default_price"]
+        )
+
+    return new_product
+
+
+def create_line_items():
+    """Retrieves products list from stripe inventory
+    >>> iterates over items in session cart
+    >>> queries comics from local db
+    >>> finds comics in stripe inventory and retrieves their default price id
+    >>> if comic not in inventory ->
+    >>> creates a new stripe product and retrieves the default price id
+    >>>
+    >>> builds a dictionary of each item with product name, price and quantity
+    >>> dictionary items are appended to items_list and returned
+    """
+    # empty list to hold the dictionary of items to pass to the stripe checkout session line_items
+    items_list = []
+
+    # return a list of products in stripe inventory
+    products_list = get_all_stripe_products()
+
+    # iterate over items in session cart
+    for d in session['cart']:
+        # empty dict to hold line items
+        item={}
+
+        # get the comic in session cart from db
+        comic = Comic.query.get(d['id'])
+
+        # iterate over dictionaries of products in stripe inventory
+        for i in products_list:
+        # check for the comic in the stripe inventory
+
+            if comic.name in i.values():
+                # if the product is already in stripe inventory, get the default price id
+                prod_price = i['default_price']
+                # set key 'price' in item dict to the default price id for the stripe product
+                item["price"] = prod_price
+                # stop the loop and move on the next product
+                break
+
+            # else, product is not in products list
+            else:
+                # create a new product in stripe inventory
+                new_product = create_stripe_product(comic.name)
+                # set the key 'price' to the default price id from the stripe product
+                item["price"] = new_product['default_price']["id"]
+                # stop the loop and move on the next product
+                break
+
+        # set the key quantity in item dict to the item quantity from session cart
+        item["quantity"] = d[comic.name]
+        # append the dictionary to the items_list
+        items_list.append(dict(item))
+    
+    return items_list
+
+
+def create_checkout_sess(items_list):
+    """Creates a stripe checkout session
+    >>> uses items_list to pass price and quantity information
+    >>> returns a checkout_session object
+    """
+    success_url = 'http://127.0.0.1:5000/checkout/success?session_id={CHECKOUT_SESSION_ID}'
+    cancel_url = 'http://127.0.0.1:5000/checkout/cancel'
+    
+    try:
+        # create a new stripe checkout session
+        checkout_session = stripe.checkout.Session.create(
+            # pass in the list of dicts of each item price and quantity in the cart
+            line_items=items_list,
+            mode='payment',
+            success_url=success_url,
+            cancel_url=cancel_url,
+        )
+    except Exception as e:
+        return str(e)
+
+    return checkout_session
