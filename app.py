@@ -19,7 +19,7 @@ import stripe
 
 
 CURR_USER_KEY = "curr_user"
-stripe.api_key = os.environ.get('STRIPE_TEST_API_KEY', 'sk_test_51MNeg0DugXxFxym6nqUpiTKKtRpdLwRjM4Hix8NKPObBVtDYIVuW8FxTbLipSvxvt4Oj45yjeUe2iFUTTLVrdadF00KclEHSAC')
+stripe.api_key = os.environ.get('STRIPE_TEST_API_KEY')
 
 app = Flask(__name__)
 
@@ -39,7 +39,7 @@ app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
-app.config['COMIC_API_KEY'] = os.environ.get('COMIC_API_KEY', '6097d6aeb080923e8927570f0ff9ac6f3292fe0a')
+app.config['COMIC_API_KEY'] = os.environ.get('COMIC_API_KEY')
 toolbar = DebugToolbarExtension(app)
 
 connect_db(app)
