@@ -27,6 +27,7 @@ class UserViewTestCase(TestCase):
 
         User.query.delete()
         Comic.query.delete()
+        Character.query.delete()
         
         self.client = app.test_client()
 
@@ -239,6 +240,7 @@ class UserViewTestCase(TestCase):
     def test_add_to_character_list(self):
         """Are characters being added to the characters table?"""
 
+        self.setup_characters()
 
         character = Character.query.get(7777)
         self.assertIsNotNone(character)
@@ -279,6 +281,8 @@ class UserViewTestCase(TestCase):
 
     def test_show_character_list(self):
         """Do saved characters display on the characters page?"""
+        
+        self.setup_characters()
 
          # fake login
         with self.client as c:
