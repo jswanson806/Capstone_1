@@ -232,7 +232,16 @@ def add_reading_list_item(comic_id):
         comic = Comic.query.get(comic_id)
     else:
         # query api for comic, returns comic object instance
-        new_comic = get_comic_issue(comic_id)
+        data = get_comic_issue(comic_id)
+
+        new_comic = Comic(id = data['results']['id'],
+                    name = data['results']['name'],
+                    issue_number = data['results']['issue_number'],
+                    cover_date = data['results']['cover_date'],
+                    cover_img = data['results']['image']['original_url'],
+                    deck = data['results']['deck'],
+                    price = '4.99'
+                    )
 
         # add the comic to the db if it does not already exist, returns db comic object
         comic = add_comic_to_db(new_comic)
@@ -353,7 +362,7 @@ def remove_character(character_id):
 @app.route('/characters')
 def find_characters():
     """Find characters matching keyword search."""
-    
+
     # get the search term from the url
     args = request.args['prod-search']
 
@@ -462,7 +471,16 @@ def add_item_to_session_cart(comic_id):
         comic = Comic.query.get(comic_id)
     else:
         # query api for comic, returns comic object instance
-        new_comic = get_comic_issue(comic_id)
+        data = get_comic_issue(comic_id)
+
+        new_comic = Comic(id = data['results']['id'],
+                    name = data['results']['name'],
+                    issue_number = data['results']['issue_number'],
+                    cover_date = data['results']['cover_date'],
+                    cover_img = data['results']['image']['original_url'],
+                    deck = data['results']['deck'],
+                    price = '4.99'
+                    )
 
         # add the comic to the db, returns db comic object
         comic = add_comic_to_db(new_comic)
