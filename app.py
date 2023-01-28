@@ -526,39 +526,8 @@ def show_checkout_success():
 
     # grab the session id from the url
     args = request.args.get('session_id')
-    # get the stripe checkout session object
-    checkout_session = stripe.checkout.Session.retrieve(args)
-
-    # total from stripe api is str ->
-    # coerce api total to float -> divide by 100 to format as curreny amount with 2 decimal places ->
-    # coerce back to str to add to db column 'total'
-    checkout_total = str(float(checkout_session['amount_total']/100))
-    
-    # create a new order instance
-    new_order = Order(session_id=checkout_session['id'],
-                  sub_total=checkout_session['amount_subtotal'],
-                  total=checkout_total,
-                  customer_name=checkout_session['customer_details']['name'],
-                  phone=checkout_session['customer_details']['phone'],
-                  email=checkout_session['customer_details']['email']
-                  )
-
-    # add and commit the new order to db
-    db.session.add(new_order)
-    db.session.commit()
-
-    # query the order from the db
-    order = Order.query.get(new_order.id)
-    
-    # loop over items in session cart
-    for d in session['cart']:
-        # query the comic
-        comic = Comic.query.get(d['id'])
-        # append the comic to order.itmes list
-        order.items.append(comic)
-
-    # commit to db
-    db.session.commit()
+    # create a new order in the local db
+    order = create_new_order(args)
 
     # check for logged in user
     if g.user:
@@ -573,7 +542,8 @@ def show_checkout_success():
         clear_session_cart()
 
         return render_template("success.html", user=user)
-
+        
+    # guest checkout
     else:
         # clear the session cart
         clear_session_cart()
