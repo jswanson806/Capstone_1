@@ -4,8 +4,8 @@ from models import db, Comic, Character, Order
 from flask import session
 import stripe
 
-COMIC_API_KEY = os.environ.get('COMIC_API_KEY','6097d6aeb080923e8927570f0ff9ac6f3292fe0a')
-stripe.api_key = os.environ.get('STRIPE_TEST_API_KEY', 'sk_test_51MNeg0DugXxFxym6nqUpiTKKtRpdLwRjM4Hix8NKPObBVtDYIVuW8FxTbLipSvxvt4Oj45yjeUe2iFUTTLVrdadF00KclEHSAC')
+COMIC_API_KEY = os.environ.get('COMIC_API_KEY')
+stripe.api_key = os.environ.get('STRIPE_TEST_API_KEY')
 
 # API URLs
 COMIC_BASE = 'https://comicvine.gamespot.com/api'
@@ -323,7 +323,7 @@ def clear_session_cart():
 def get_all_stripe_products():
 
     product_list = stripe.Product.list()
-    
+
     return product_list
 
 
