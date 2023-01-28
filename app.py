@@ -14,7 +14,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from models import db, connect_db, User, Character, Comic, Order
 from forms import UserSignUpForm, EditUserForm, UserSignInForm
-from methods import search_characters, find_single_character, find_character_appearances, add_character_to_db, add_comic_to_db, get_comic_issue, clear_session_cart
+from methods import *
 import stripe
 
 
@@ -511,45 +511,12 @@ def clear_cart_contents():
 @app.route('/checkout/create-session', methods=["GET","POST"])
 def create_checkout_session():
     """Create checkout session"""
-    items_list = []
-    success_url = 'http://127.0.0.1:5000/checkout/success?session_id={CHECKOUT_SESSION_ID}'
-    cancel_url = 'http://127.0.0.1:5000/checkout/cancel'
-
-
-    for d in session['cart']:
-
-        comic = Comic.query.get(d['id'])
-
-        new_product = stripe.Product.create(
-            name=comic.name,
-            default_price_data={
-                "unit_amount": 499,
-                "currency": "usd",
-                "recurring": None,
-            },
-            expand=["default_price"]
-        )
-
-
-        item={}
-        item["price"] = new_product["default_price"]["id"]
-        item["quantity"] = d[comic.name]
-
-        items_list.append(dict(item))
-
-    try:
-        checkout_session = stripe.checkout.Session.create(
-            line_items=items_list,
-            mode='payment',
-            success_url=success_url,
-            cancel_url=cancel_url,
-        )
-     
-
-    except Exception as e:
-        return str(e)
-
-
+    # build the items_list of dictionaries with {'price' : '', 'quantity': ''}
+    # stripe uses the price id saved as the val of key 'price' in items_list to get the item name
+    items_list = create_line_items()
+    # takes items_list and creates a stripe checkout session -> returns the checkout_session object
+    checkout_session = create_checkout_sess(items_list)
+    # return the checkout_session url (either 'success' or 'cancel' url)
     return redirect(checkout_session.url, code=303)
     
 
