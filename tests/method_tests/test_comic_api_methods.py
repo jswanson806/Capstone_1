@@ -12,7 +12,7 @@ from unittest import TestCase
 from unittest.mock import patch, MagicMock
 from models import db
 from methods import get_comic_issue, find_single_character, find_character_appearances, get_and_filter_appearances, handle_search_results
-from test_character_data import *
+from tests.test_character_data import *
 
 os.environ['DATABASE_URL'] = "postgresql:///comicbook_store"
 

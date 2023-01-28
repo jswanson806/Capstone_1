@@ -323,7 +323,7 @@ def clear_session_cart():
 def get_all_stripe_products():
 
     product_list = stripe.Product.list()
-
+    
     return product_list
 
 
