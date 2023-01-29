@@ -81,3 +81,6 @@ Stripe's API is used in this application for the following
 2. ### Comic Vine - Comics API
 [ComicVine](https://comicvine.gamespot.com/api/documentation?ref=apilist.fun)
 
+### Application Flow
+
+![app flow chart](https://drive.google.com/file/d/1j98bpukBpryEVwzo8HwR2nXTtq8YVRE2/preview)
