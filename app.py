@@ -117,7 +117,7 @@ def sign_up_page():
             return render_template('sign-up.html', form=form)
 
         # send welcome email
-        msg = Message('Welcome to Fox Comics!', sender = 'foxcomicsllc@gmail.com', recipients = [form.email.data])
+        msg = Message('Welcome!', sender = 'foxcomicsllc@gmail.com', recipients = [form.email.data])
         msg.html = render_template("welcome-email.html")
         mail.send(msg)
 
