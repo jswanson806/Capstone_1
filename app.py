@@ -356,6 +356,19 @@ def remove_character(character_id):
 
     return redirect(f'/users/{g.user.id}/characters')
 
+@app.route("/user/<int:user_id>/order/<int:order_id>")
+def show_order_details(user_id, order_id):
+    """Show order details page."""
+    
+    if g.user.id != user_id:
+        flash('Access Unauthorized', 'danger')
+        return redirect('/')
+
+    order = Order.query.get(order_id)
+    order_items = order.items
+
+    return render_template("order-details.html", order=order, order_items=order_items)
+
 #***************************************Character Routes**********************************
 
 @app.route('/characters')
@@ -631,18 +644,3 @@ def show_comic_details(comic_id):
                     )
 
     return render_template('comic-details.html', comic=comic)
-
-#******************************************Order Routes***************************************
-
-@app.route("/user/<int:user_id>/order/<int:order_id>")
-def show_order_details(user_id, order_id):
-    """Show order details page."""
-    
-    if g.user.id != user_id:
-        flash('Access Unauthorized', 'danger')
-        return redirect('/')
-
-    order = Order.query.get(order_id)
-    order_items = order.items
-
-    return render_template("order-details.html", order=order, order_items=order_items)
