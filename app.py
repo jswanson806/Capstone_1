@@ -23,7 +23,6 @@ stripe.api_key = os.environ.get('STRIPE_TEST_API_KEY')
 
 app = Flask(__name__)
 
-endpoint_secret = 'whsec_MK26BTdNTz9h18jc582zBr8zVSvXgMos'
 
 # Get DB_URI from environ variable (useful for production/testing) or,
 # if not set there, use development local db.

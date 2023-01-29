@@ -224,6 +224,7 @@ def search_characters(search_term):
 
 
 def handle_search_results(data):
+    print('#########################', data)
     search_results = []
     # count of returned characters from api search
     results_count = data['number_of_page_results']
