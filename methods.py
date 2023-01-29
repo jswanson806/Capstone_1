@@ -402,8 +402,8 @@ def create_checkout_sess(items_list):
     >>> uses items_list to pass price and quantity information
     >>> returns a checkout_session object
     """
-    success_url = 'http://127.0.0.1:5000/checkout/success?session_id={CHECKOUT_SESSION_ID}'
-    cancel_url = 'http://127.0.0.1:5000/checkout/cancel'
+    success_url = 'https://fox-comics.herokuapp.com/checkout/success?session_id={CHECKOUT_SESSION_ID}'
+    cancel_url = 'https://fox-comics.herokuapp.com/checkout/cancel'
     
     try:
         # create a new stripe checkout session
