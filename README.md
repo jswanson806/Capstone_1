@@ -83,4 +83,4 @@ Stripe's API is used in this application for the following
 
 ### Application Flow
 
-![app flow chart](https://drive.google.com/file/d/1j98bpukBpryEVwzo8HwR2nXTtq8YVRE2/preview)
+![app flow chart](https://drive.google.com/uc?id=1j98bpukBpryEVwzo8HwR2nXTtq8YVRE2)
