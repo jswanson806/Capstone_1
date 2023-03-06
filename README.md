@@ -27,8 +27,6 @@ Create an eCommerce site where users search by character, obtain details about t
 1. ### Stripe - Payments API
 [Stripe](https://stripe.com/?ref=apilist.fun)  
 
-Stripe's API is used in this application for the following 
-
 2. ### Comic Vine - Comics API
 [ComicVine](https://comicvine.gamespot.com/api/documentation?ref=apilist.fun)
 
