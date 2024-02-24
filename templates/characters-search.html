@@ -20,7 +20,7 @@
                         <tbody>
                             {% for character in characters %}
                             <tr>
-                                <td class="product-thumbnail"><a href="/{{ character.id }}"><img src="{{ character.icon_image_url }}" alt="Digital Product"></a></td>
+                                <td class="product-thumbnail"><a href="/characters/{{ character.id }}"><img src="{{ character.icon_image_url }}" alt="Digital Product"></a></td>
                                 <td class="product-title"><a href="/characters/{{ character.id }}">{{ character.name }}</a></td>
                                 <td class="product-stock-status" data-title="Appearances">{{ character.total_appearances }}</td>
                                 {% if g.user %}
