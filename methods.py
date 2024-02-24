@@ -100,7 +100,6 @@ def find_single_character(character_id):
         return "An Unknown Error occurred" + repr(err)
     
     data = res.json()
-    print("DATA: ", data)
     return data
 
 
