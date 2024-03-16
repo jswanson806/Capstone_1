@@ -8,7 +8,7 @@
 
 Fox Comics is an eCommerce site built for a fictional, digital comic book retailer. Users can search by character to discover comic books where the character has appeared. When they find something interesting to read, they can add the comic to their cart and checkout.
 
-Users who sing-up for an account are provided with additional functionality. A registered user can maintain lists of characters and comics they find interesting to return to at a later time.
+Users who sign-up for an account are provided with additional functionality. A registered user can maintain lists of characters and comics they find interesting to return to at a later time.
 
 ### The Concept
 
