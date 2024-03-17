@@ -46,7 +46,6 @@ class Comic(db.Model):
 
     appear_assignments = db.relationship('Character_Appearance', backref='comics', cascade="all, delete-orphan")
     reading_assignments = db.relationship('Reading_List', backref='comics', cascade="all, delete-orphan")
-    order_assignments = db.relationship('Order_Item', backref='comics', cascade="all, delete-orphan")
     
 
 class Character(db.Model):
@@ -97,7 +96,6 @@ class Order(db.Model):
                             )
                     
     item_assignments = db.relationship("Order_Item", backref="orders", cascade="all, delete-orphan")
-    transaction_assignments = db.relationship("User_Orders", backref="orders", cascade="all, delete-orphan")
 
 
 # *************************************Through Tables************************************
@@ -150,23 +148,6 @@ class Order_Item(db.Model):
                         primary_key=True
                         )
 
-
-class User_Orders(db.Model):
-    """Transaction model."""
-
-    __tablename__ = "user_orders"
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
-
-    user_id = db.Column(db.Integer, 
-                        db.ForeignKey('users.id', ondelete="cascade"), 
-                        primary_key=True
-                        )
-    order_id = db.Column(db.Integer, 
-                        db.ForeignKey('orders.id', ondelete="cascade"), 
-                        primary_key=True
-                        )
-
 # *****************************************User Model**********************************************
 
 class User(db.Model):
@@ -190,12 +171,6 @@ class User(db.Model):
                             secondary="reading_lists", 
                             backref="users"
                             )
-
-    orders = db.relationship("Order",
-                            secondary="user_orders",
-                            backref="users"
-                            )
-    assigned_transactions = db.relationship("User_Orders", backref="users", cascade="all, delete-orphan")
 
     assigned_reading = db.relationship("Reading_List", backref="users", cascade="all, delete-orphan")
 

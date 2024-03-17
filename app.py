@@ -194,7 +194,7 @@ def show_user_profile(user_id):
                 # flash msg if authentication fails
                 flash('Incorrect password')
                 return redirect('/')
-    orders = user.orders
+    orders = Order.query.filter(Order.email == user.email).all()
 
     return render_template('my-account.html', form=form, orders=orders)
 
@@ -484,7 +484,7 @@ def add_item_to_session_cart(comic_id):
     else:
         # query api for comic, returns comic object instance
         data = get_comic_issue(comic_id)
-
+        
         new_comic = Comic(id = data['results']['id'],
                     name = data['results']['name'],
                     issue_number = data['results']['issue_number'],
@@ -597,16 +597,12 @@ def show_checkout_success():
     # grab the session id from the url
     args = request.args.get('session_id')
     # create a new order in the local db
-    order = create_new_order(args)
+    create_new_order(args)
 
     # check for logged in user
     if g.user:
         # query the user from the db
         user = User.query.get(g.user.id)
-        # append the order to the user.orders list
-        user.orders.append(order)
-        # commit to db
-        db.session.commit()
 
         # clear the session cart
         clear_session_cart()
