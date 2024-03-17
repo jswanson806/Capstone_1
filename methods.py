@@ -455,7 +455,7 @@ def create_new_order(args):
     for d in session['cart']:
         # query the comic
         comic = Comic.query.get(d['id'])
-        # append the comic to order.itmes list
+        # append the comic to order.items list
         order.items.append(comic)
 
     # commit to db
