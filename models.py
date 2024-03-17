@@ -172,9 +172,6 @@ class User(db.Model):
                             backref="users"
                             )
 
-    orders = db.relationship("Order",
-                            backref="users"
-                            )
     assigned_reading = db.relationship("Reading_List", backref="users", cascade="all, delete-orphan")
 
     assigned_characters = db.relationship("Character_List", backref="users", cascade="all, delete-orphan")
