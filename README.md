@@ -37,8 +37,7 @@ Create an eCommerce site where users search by character, obtain details about t
 ![app flow chart](https://drive.google.com/uc?id=1j98bpukBpryEVwzo8HwR2nXTtq8YVRE2)
 
 ### Database Schema
-![app Database Schema](https://drive.google.com/uc?id=1STxh6A2JbaTqaNFwPEHcEwWCQbHdgTqB)
-
+![app Database Schema](https://drive.google.com/uc?id=1MNx4lhs1rWqqyv-bPOhXdWYUoHbY91rJ)
 
 ### How Would I Improve This App?
 
