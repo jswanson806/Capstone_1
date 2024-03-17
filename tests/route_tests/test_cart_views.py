@@ -91,7 +91,7 @@ class UserViewTestCase(TestCase):
             self.assertEqual(2, len(flask.session['cart']))
 
             # are the comics being added to cart in proper format?
-            self.assertEqual(flask.session['cart'], [{'id': 8888, 'testcomic': 1}, {'id': 964800, 'Power Vacuum Part 4: The Leap': 1}])
+            self.assertEqual(flask.session['cart'], [{'id': 8888, 'testcomic': 1}, {'id': 964800, 'Power Vacuum, Part 4: The Leap': 1}])
 
 
     def test_add_duplicate_to_cart(self):
