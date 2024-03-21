@@ -1,5 +1,4 @@
 # Fox Comics
-## Capstone 1
 ---
 ### Link to Heroku Application
 [Fox Comics](https://fox-comics.herokuapp.com/)
